@@ -1,0 +1,20 @@
+{
+  "name": "sypherlev/blueprint",
+  "description": "DBAL package that performs data operations through applying patterns",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [ "sql", "database", "query" ],
+  "autoload": {
+    "psr-4": { "SypherLev\\Blueprint\\": "src" }
+  },
+  "prefer-stable": true,
+  "require": {
+    "php": ">=7.0"
+  },
+  "authors": [
+    {
+      "name": "Claire Ryan",
+      "email": "claire@raynfall.com"
+    }
+  ]
+}
