@@ -188,7 +188,7 @@ class MySqlSource implements SourceInterface
     // clears the currently compiled query
     public function reset()
     {
-        $this->currentquery = new Query();
+        $this->currentquery = new MySqlQuery();
         return $this;
     }
 

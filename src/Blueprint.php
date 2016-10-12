@@ -2,7 +2,6 @@
 
 namespace SypherLev\Blueprint;
 
-use SypherLev\Blueprint\Elements\Pattern;
 use SypherLev\Blueprint\QueryBuilders\SourceInterface;
 
 class Blueprint
@@ -14,7 +13,6 @@ class Blueprint
     private $insert_records = [];
     private $set = [];
 
-    /* @var Pattern */
     private $activePattern = false;
 
     private $activeFilters = [];
@@ -180,18 +178,20 @@ class Blueprint
     }
 
     private function loadElements() {
-        if(!$this->activePattern) {
-            throw (new \Exception('Could not start database interaction: pattern not set'));
-        }
-        $source = $this->activePattern->setSourceParams($this->source);
-        if(!empty($this->activeFilters)) {
-            foreach ($this->activeFilters as $filter) {
-                $source = $filter->setSourceParams($source);
+        if($this->activePattern) {
+
+            $source = $this->patterns[$this->activePattern]->setSourceParams($this->source);
+            if(!empty($this->activeFilters)) {
+                foreach ($this->activeFilters as $filter) {
+                    $source = $this->filters[$filter]->setSourceParams($source);
+                }
             }
+            $this->activePattern = false;
+            $this->activeFilter = false;
+            return $source;
         }
-        $this->activePattern = false;
-        $this->activeFilter = false;
-        $this->activeContext = false;
-        return $source;
+        else {
+            return $this->source;
+        }
     }
 }

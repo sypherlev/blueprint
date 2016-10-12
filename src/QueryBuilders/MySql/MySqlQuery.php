@@ -195,8 +195,9 @@ class MySqlQuery implements QueryInterface
         if (empty($columns)) {
             throw (new \Exception('Columns list is empty'));
         }
-        if (empty($this->table)) {
-            throw (new \Exception('You must set the primary table before setting the columns'));
+        $table = false;
+        if (!empty($this->table)) {
+            $table = $this->table;
         }
         if (!$this->hasNumericKeys($columns)) {
             // then this is an aliased column list or a table list
@@ -207,21 +208,21 @@ class MySqlQuery implements QueryInterface
                     foreach ($col as $alias => $innercol) {
                         if (!$this->hasNumericKeys($col)) {
                             // then this is an aliased table list
-                            $this->newColumnEntry($tablename, $innercol, $alias);
+                            $this->newColumnEntry($innercol, $alias, $tablename);
                         } else {
                             // then this is a non-aliased table list
-                            $this->newColumnEntry($tablename, $innercol, false);
+                            $this->newColumnEntry($innercol, false, $tablename);
                         }
                     }
                 } else {
                     // then this is an aliased column list
-                    $this->newColumnEntry($this->table, $col, $key);
+                    $this->newColumnEntry($col, $key, $table);
                 }
             }
         } else {
             // then this is a plain list of columns
             foreach ($columns as $column) {
-                $this->newColumnEntry($this->table, $column, false);
+                $this->newColumnEntry($column, false, $table);
             }
         }
     }
@@ -276,9 +277,7 @@ class MySqlQuery implements QueryInterface
         if (empty($where)) {
             throw (new \Exception('Where list is empty'));
         }
-        if (empty($this->table)) {
-            throw (new \Exception('You must set the primary table before setting the where clause'));
-        }
+        $placeholder = 'sypherlev_blueprint_tablename_placeholder';
         foreach ($where as $key => $value) {
             if (is_array($value) && strpos($key, ' IN') === false) {
                 // then this is an array of table => [column => param, ...]
@@ -290,7 +289,7 @@ class MySqlQuery implements QueryInterface
             }
             else if(is_array($value) && strpos($key, ' IN') !== false) {
                 // then this is an IN or NOT IN array
-                $where = [$this->table => $where];
+                $where = [$placeholder => $where];
                 $this->newWhereEntry($where, $innercondition, $outercondition);
                 break;
             }
@@ -298,7 +297,7 @@ class MySqlQuery implements QueryInterface
                 if ($this->hasNumericKeys($where)) {
                     throw (new \Exception('Bad where relations array: array must have string keys in the format column => param or table => [column => param]'));
                 }
-                $where = [$this->table => $where];
+                $where = [$placeholder => $where];
                 $this->newWhereEntry($where, $innercondition, $outercondition);
                 break;
             }
@@ -307,8 +306,9 @@ class MySqlQuery implements QueryInterface
 
     public function setOrderBy(Array $orderby, $direction = 'ASC', $aliases = false)
     {
-        if (!$this->table) {
-            throw (new \Exception('You must set the primary table before setting the order clause'));
+        $table = false;
+        if (!empty($this->table)) {
+            $table = $this->table;
         }
         if (!in_array($direction, $this->allowedorders)) {
             throw (new \Exception('Disallowed ORDER BY type: order must be one of ASC|DESC'));
@@ -340,7 +340,7 @@ class MySqlQuery implements QueryInterface
                     if ($aliases) {
                         $this->newOrderEntry($col);
                     } else {
-                        $this->newOrderEntry($col, $this->table);
+                        $this->newOrderEntry($col, $table);
                     }
                 } else {
                     throw (new \Exception('Invalid non-string column name in ORDER BY clause'));
@@ -352,14 +352,15 @@ class MySqlQuery implements QueryInterface
 
     public function setGroupBy(Array $groupby)
     {
-        if (!$this->table) {
-            throw (new \Exception('You must set the primary table before setting the group by clause'));
+        $table = false;
+        if (!empty($this->table)) {
+            $table = $this->table;
         }
         if (!$this->hasNumericKeys($groupby)) {
             // then this is an array of tables
             foreach ($groupby as $table => $col) {
                 if (is_string($col)) {
-                    $this->newGroupEntry($col, $table);
+                    $this->newGroupEntry($table, $col);
                 } else {
                     throw (new \Exception('Invalid non-string column name in GROUP BY clause'));
                 }
@@ -368,7 +369,7 @@ class MySqlQuery implements QueryInterface
             // then this is a plain array of columns
             foreach ($groupby as $col) {
                 if (is_string($col)) {
-                    $this->newGroupEntry($this->table, $col);
+                    $this->newGroupEntry($table, $col);
                 } else {
                     throw (new \Exception('Invalid non-string column name in GROUP BY clause'));
                 }
@@ -418,6 +419,9 @@ class MySqlQuery implements QueryInterface
     private function compileColumns() {
         $columnstring = '';
         foreach ($this->columns as $columnentry) {
+            if($columnentry->table == false) {
+                $columnentry->table = $this->table;
+            }
             if($columnentry->column == '*') {
                 $columnstring .= '`'.$columnentry->table.'`.'.$columnentry->column;
             }
@@ -449,6 +453,9 @@ class MySqlQuery implements QueryInterface
         $compilestring = 'WHERE ';
         foreach ($this->wheres as $whereentry) {
             foreach($whereentry->params as $table => $columns) {
+                if($table === 'sypherlev_blueprint_tablename_placeholder') {
+                    $table = $this->table;
+                }
                 $compilestring .= '(';
                 foreach ($columns as $column => $placeholder) {
                     $operand = $this->checkOperand($column, $placeholder);
@@ -529,7 +536,7 @@ class MySqlQuery implements QueryInterface
         $this->updates[] = $newupdate;
     }
 
-    private function newColumnEntry($table, $column, $alias)
+    private function newColumnEntry($column, $alias, $table = false)
     {
         if (!empty($this->columnwhitelist)) {
             if (!in_array($column, $this->columnwhitelist)) {
@@ -537,7 +544,7 @@ class MySqlQuery implements QueryInterface
             }
         }
         if (!empty($this->tablewhitelist)) {
-            if (!in_array($table, $this->tablewhitelist)) {
+            if ($table !== false && !in_array($table, $this->tablewhitelist)) {
                 throw (new \Exception('Table name in selection list not found in white list'));
             }
         }
@@ -620,7 +627,7 @@ class MySqlQuery implements QueryInterface
         }
         if (!empty($this->tablewhitelist)) {
             foreach ($paramArray as $table => $columns) {
-                if (!in_array($table, $this->tablewhitelist)) {
+                if ($table !== false && !in_array($table, $this->tablewhitelist)) {
                     throw (new \Exception('Table name in WHERE not found in white list'));
                 }
             }
