@@ -4,6 +4,8 @@ Blureprint is an extended query builder that allows you to define, reuse, and ov
 
 It's built using PDO, and currently supports MySQL/MariaDB. (It probably works with other SQL databases but I haven't tested it yet.)
 
+Highly experimental and not recommended for production work right now.
+
 ## Usage
 
 Let's setup a basic Blueprint object and define how it should interact with the database. (Blueprint is not an ORM; your data will always be plain PHP objects or arrays.)
