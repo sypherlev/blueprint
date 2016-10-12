@@ -1,6 +1,6 @@
 # Blueprint Query Compiler
 
-Blureprint is an extended query builder that allows you to define, reuse, and override chunks of query code at will.
+Blueprint is an extended query builder that allows you to define, reuse, and override chunks of query code at will.
 
 It's built using PDO, and currently supports MySQL/MariaDB. (It probably works with other SQL databases but I haven't tested it yet.)
 
