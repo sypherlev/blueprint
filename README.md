@@ -104,3 +104,5 @@ In the User object itself, here are some possible functions:
             ->many();
     }
 If you've ever used a query builder, the methods above should look familiar.
+
+TO DO - add more about how all this interacts with update/insert/delete
