@@ -95,31 +95,25 @@ class MySqlQuery implements QueryInterface
             throw new \Exception('No records added for INSERT: statement cannot be executed.');
         }
         if(isset($this->columns)) {
-            if($this->hasNumericKeys($this->columns)) {
-                foreach ($this->records as $record) {
-                    foreach ($record as $key => $value) {
-                        if(!in_array($key, $this->columns)) {
-                            throw new \Exception('Column '.$key.' missing from table '.$this->table.' in INSERT record');
+            $tablevalid = false;
+            foreach ($this->records as $record) {
+                foreach ($record as $key => $set) {
+                    $valid = false;
+                    foreach ($this->columns as $column) {
+                        if($column->table == $this->table) {
+                            $tablevalid = true;
                         }
+                        if($column->table == $this->table && $column->column == $key) {
+                            $valid = true;
+                        }
+                    }
+                    if(!$valid) {
+                        throw new \Exception(' PHP :: Pattern mismatch: Column '.$key.' in table '.$this->table.' failed validation in INSERT');
                     }
                 }
             }
-            else {
-                $tables = array_keys($this->columns);
-                if(!in_array($this->table, $tables)) {
-                    throw new \Exception('Pattern mismatch: table ' . $this->table . ' not present in the current Pattern; INSERTing record');
-                }
-                foreach ($this->columns as $keyortable => $column) {
-                    if(is_array($column) && $keyortable == $this->table) {
-                        foreach ($this->records as $record) {
-                            foreach ($record as $key => $value) {
-                                if (!in_array($key, $column)) {
-                                    throw new \Exception('Column ' . $key . ' missing from table ' . $this->table . ' in INSERT record');
-                                }
-                            }
-                        }
-                    }
-                }
+            if(!$tablevalid) {
+                throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in INSERT');
             }
         }
         $query = $this->type . ' INTO ';
@@ -138,27 +132,23 @@ class MySqlQuery implements QueryInterface
             throw new \Exception('No SET added for UPDATE: statement cannot be executed.');
         }
         if(isset($this->columns)) {
-            if($this->hasNumericKeys($this->columns)) {
-                foreach ($this->updates as $key => $set) {
-                    if(!in_array($key, $this->columns)) {
-                        throw new \Exception('Column '.$key.' missing from table '.$this->table.' in UPDATE');
+            $tablevalid = false;
+            foreach ($this->updates as $update) {
+                $valid = false;
+                foreach ($this->columns as $column) {
+                    if($column->table == $this->table) {
+                        $tablevalid = true;
                     }
+                    if($column->table == $this->table && $column->column == $update->column) {
+                        $valid = true;
+                    }
+                }
+                if(!$valid) {
+                    throw new \Exception(' PHP :: Pattern mismatch: Column '.$update->column.' in table '.$this->table.' failed validation in UPDATE');
                 }
             }
-            else {
-                $tables = array_keys($this->columns);
-                if(!in_array($this->table, $tables)) {
-                    throw new \Exception('Pattern mismatch: table ' . $this->table . ' not present in the current Pattern; UPDATINGing record');
-                }
-                foreach ($this->columns as $keyortable => $column) {
-                    if(is_array($column) && $keyortable == $this->table) {
-                        foreach ($this->updates as $key => $set) {
-                            if(!in_array($key, $column)) {
-                                throw new \Exception('Column '.$key.' missing from table '.$this->table.' in UPDATE');
-                            }
-                        }
-                    }
-                }
+            if(!$tablevalid) {
+                throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in UPDATE');
             }
         }
         $query = $this->type . ' ';
