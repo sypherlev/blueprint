@@ -4,7 +4,7 @@ namespace SypherLev\Blueprint;
 
 use SypherLev\Blueprint\QueryBuilders\SourceInterface;
 
-class Blueprint
+abstract class Blueprint
 {
     protected $source;
     private $patterns = [];
@@ -18,11 +18,11 @@ class Blueprint
     private $activeFilters = [];
     private $activeTransformations = [];
 
-    public function __construct(SourceInterface $source) {
+    protected function __construct(SourceInterface $source) {
         $this->source = $source;
     }
 
-    public function addPattern($patternName, \Closure $pattern) {
+    protected function addPattern($patternName, \Closure $pattern) {
         $pattern = call_user_func($pattern);
         if(!is_a($pattern, 'SypherLev\Blueprint\Elements\Pattern')) {
             throw (new \Exception('Pattern named '.$patternName. ' could not be added; Closure does not return a valid Pattern object'));
@@ -30,7 +30,7 @@ class Blueprint
         $this->patterns[$patternName] = $pattern;
     }
 
-    public function withPattern($patternName) {
+    protected function withPattern($patternName) {
         if(!isset($this->patterns[$patternName])) {
             throw (new \Exception('Could not set pattern '.$patternName.': pattern not found'));
         }
@@ -38,7 +38,7 @@ class Blueprint
         return $this;
     }
 
-    public function addFilter($filterName, \Closure $filter) {
+    protected function addFilter($filterName, \Closure $filter) {
         $filter = call_user_func($filter);
         if(!is_a($filter, 'SypherLev\Blueprint\Elements\Filter')) {
             throw (new \Exception('Filter named '.$filterName. ' could not be added; Closure does not return a valid Filter object'));
@@ -46,7 +46,7 @@ class Blueprint
         $this->filters[$filterName] = $filter;
     }
 
-    public function withFilter($filterName) {
+    protected function withFilter($filterName) {
         if(!isset($this->filters[$filterName])) {
             throw (new \Exception('Could not set filter '.$filterName.': filter not found'));
         }
@@ -54,11 +54,11 @@ class Blueprint
         return $this;
     }
 
-    public function addTransformation($transformName, \Closure $transform) {
+    protected function addTransformation($transformName, \Closure $transform) {
         $this->transforms[$transformName] = $transform;
     }
 
-    public function withTransformation($transformName) {
+    protected function withTransformation($transformName) {
         if(!isset($this->transforms[$transformName])) {
             throw (new \Exception('Could not set filter '.$transformName.': filter not found'));
         }
@@ -66,31 +66,31 @@ class Blueprint
         return $this;
     }
 
-    public function select()
+    protected function select()
     {
         $this->source->select();
         return $this;
     }
 
-    public function update()
+    protected function update()
     {
         $this->source->update();
         return $this;
     }
 
-    public function insert()
+    protected function insert()
     {
         $this->source->insert();
         return $this;
     }
 
-    public function delete()
+    protected function delete()
     {
         $this->source->delete();
         return $this;
     }
 
-    public function one() {
+    protected function one() {
         $source = $this->loadElements();
         $result = $source->one();
         if($result && !empty($this->activeTransformations)) {
@@ -101,7 +101,7 @@ class Blueprint
         return $result;
     }
 
-    public function many() {
+    protected function many() {
         $source = $this->loadElements();
         $result = $source->many();
         if($result && !empty($this->activeTransformations)) {
@@ -114,7 +114,7 @@ class Blueprint
         return $result;
     }
 
-    public function execute() {
+    protected function execute() {
         $source = $this->loadElements();
         if(!empty($this->transforms) && !empty($this->set)) {
             foreach ($this->transforms as $transformation) {
@@ -132,54 +132,64 @@ class Blueprint
         return $source->execute();
     }
 
-    public function columns($columnname_or_columnarray) {
+    protected function count() {
+        $source = $this->loadElements();
+        $result = $source->count();
+        if($result && !empty($this->activeTransformations)) {
+            foreach ($this->activeTransformations as $transform) {
+                $result = call_user_func($transform, $result);
+            }
+        }
+        return $result;
+    }
+
+    protected function columns($columnname_or_columnarray) {
         $this->source->columns($columnname_or_columnarray);
         return $this;
     }
 
-    public function table($tablename) {
+    protected function table($tablename) {
         $this->source->table($tablename);
         return $this;
     }
 
-    public function add(Array $record) {
+    protected function add(Array $record) {
         $this->insert_records[] = $record;
         return $this;
     }
 
-    public function set(Array $set) {
+    protected function set(Array $set) {
         $this->set = $set;
         return $this;
     }
 
-    public function limit($rows, $offset = false) {
+    protected function limit($rows, $offset = false) {
         $this->source->limit($rows, $offset);
         return $this;
     }
 
-    public function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false) {
+    protected function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false) {
         $this->source->orderBy($columnname_or_columnarray, $order, $useAliases);
         return $this;
     }
 
-    public function groupBy($columnname_or_columnarray) {
+    protected function groupBy($columnname_or_columnarray) {
         $this->source->groupBy($columnname_or_columnarray);
         return $this;
     }
 
-    public function join($firsttable, $secondtable, Array $on, $type = 'inner') {
+    protected function join($firsttable, $secondtable, Array $on, $type = 'inner') {
         $this->source->join($firsttable, $secondtable, $on, $type);
         return $this;
     }
 
-    public function where(Array $where, $innercondition = 'AND', $outercondition = 'AND') {
+    protected function where(Array $where, $innercondition = 'AND', $outercondition = 'AND') {
         $this->source->where($where, $innercondition, $outercondition);
         return $this;
     }
 
     private function loadElements() {
         if($this->activePattern) {
-
             $source = $this->patterns[$this->activePattern]->setSourceParams($this->source);
             if(!empty($this->activeFilters)) {
                 foreach ($this->activeFilters as $filter) {
