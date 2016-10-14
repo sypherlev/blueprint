@@ -128,7 +128,14 @@ abstract class Blueprint
                 }
             }
         }
-        $source->set($this->set);
+        if(!empty($this->set)) {
+            $source->set($this->set);
+        }
+        if(!empty($this->insert_records)) {
+            foreach ($this->insert_records as $record) {
+                $source->add($record);
+            }
+        }
         return $source->execute();
     }
 
