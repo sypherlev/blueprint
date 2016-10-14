@@ -32,10 +32,10 @@ class MySqlSource implements SourceInterface
 
     public function one($sql = false, $binds = false)
     {
-        if(!$sql) {
+        if (!$sql) {
             $sql = $this->generateStatement();
         }
-        if(!$binds) {
+        if (!$binds) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -47,15 +47,22 @@ class MySqlSource implements SourceInterface
             }
             $statement->execute();
             $return = $statement->fetch(\PDO::FETCH_OBJ);
-            if($this->recording) {
+            if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
                     'binds' => $binds,
                     'error' => $statement->errorInfo()
                 );
             }
-        } catch (\PDOException $e) {
-            return false;
+        } catch (\Exception $e) {
+            if ($this->recording) {
+                $this->recording_output[] = array(
+                    'sql' => $sql,
+                    'binds' => $binds,
+                    'error' => $e->getMessage()
+                );
+            }
+            $return = false;
         }
         $this->reset();
         return $return;
@@ -63,10 +70,10 @@ class MySqlSource implements SourceInterface
 
     public function many($sql = false, $binds = false)
     {
-        if(!$sql) {
+        if (!$sql) {
             $sql = $this->generateStatement();
         }
-        if(!$binds) {
+        if (!$binds) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -78,15 +85,22 @@ class MySqlSource implements SourceInterface
             }
             $statement->execute();
             $return = $statement->fetchAll(\PDO::FETCH_OBJ);
-            if($this->recording) {
+            if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
                     'binds' => $binds,
                     'error' => $statement->errorInfo()
                 );
             }
-        } catch (\PDOException $e) {
-            return false;
+        } catch (\Exception $e) {
+            if ($this->recording) {
+                $this->recording_output[] = array(
+                    'sql' => $sql,
+                    'binds' => $binds,
+                    'error' => $e->getMessage()
+                );
+            }
+            $return = false;
         }
         $this->reset();
         return $return;
@@ -96,20 +110,19 @@ class MySqlSource implements SourceInterface
     {
         $this->currentquery->setCount(true);
         $return = $this->one();
-        if($return) {
+        if ($return) {
             return $return->count;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
     public function execute($sql = false, $binds = false)
     {
-        if(!$sql) {
+        if (!$sql) {
             $sql = $this->generateStatement();
         }
-        if(!$binds) {
+        if (!$binds) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -120,15 +133,22 @@ class MySqlSource implements SourceInterface
                 }
             }
             $return = $statement->execute();
-            if($this->recording) {
+            if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
                     'binds' => $binds,
                     'error' => $statement->errorInfo()
                 );
             }
-        } catch (\PDOException $e) {
-            return false;
+        } catch (\Exception $e) {
+            if ($this->recording) {
+                $this->recording_output[] = array(
+                    'sql' => $sql,
+                    'binds' => $binds,
+                    'error' => $e->getMessage()
+                );
+            }
+            $return = false;
         }
         $this->reset();
         return $return;
@@ -164,7 +184,7 @@ class MySqlSource implements SourceInterface
                     $return = $statement->fetchAll($returntype);
                 }
             }
-            if($this->recording) {
+            if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
                     'binds' => $values,
@@ -177,7 +197,8 @@ class MySqlSource implements SourceInterface
         }
     }
 
-    public function pattern() {
+    public function pattern()
+    {
         $current = $this->currentquery;
         $this->reset();
         return $current;
@@ -199,7 +220,8 @@ class MySqlSource implements SourceInterface
     }
 
     // get a list of columns from a table in the current database
-    public function getTableColumns($tableName) {
+    public function getTableColumns($tableName)
+    {
         $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :database AND TABLE_NAME = :tableName;";
         return $this->raw($sql, [':database' => $this->config->database, ':tableName' => $tableName], 'fetchAll');
     }
@@ -210,7 +232,8 @@ class MySqlSource implements SourceInterface
      *
      * @return \stdClass
      */
-    public function retrieveQuery() {
+    public function retrieveQuery()
+    {
         $query = new \stdClass();
         $query->compiledquery = $this->getCurrentSQL();
         $query->bindings = $this->getAllBindings();
@@ -224,7 +247,8 @@ class MySqlSource implements SourceInterface
      * @param array $whitelist
      * @return $this
      */
-    public function setColumnWhitelist(Array $whitelist) {
+    public function setColumnWhitelist(Array $whitelist)
+    {
         $this->currentquery->setColumnWhitelist($whitelist);
         return $this;
     }
@@ -236,7 +260,8 @@ class MySqlSource implements SourceInterface
      * @param array $whitelist
      * @return $this
      */
-    public function setTableWhitelist(Array $whitelist) {
+    public function setTableWhitelist(Array $whitelist)
+    {
         $this->currentquery->setTableWhitelist($whitelist);
         return $this;
     }
@@ -251,47 +276,48 @@ class MySqlSource implements SourceInterface
     public function lastIdFrom($table, $primaryKeyname = 'id')
     {
         $record = $this->select()->table($table)->columns([$primaryKeyname])->orderBy($primaryKeyname, 'DESC')->one();
-        if(isset($record->{$primaryKeyname})) {
+        if (isset($record->{$primaryKeyname})) {
             return $record->{$primaryKeyname};
-        }
-        else {
+        } else {
             return false;
         }
     }
 
     // does whatever it says
 
-    public function lastInsertId($name = null) {
+    public function lastInsertId($name = null)
+    {
         return $this->pdo->lastInsertId($name);
     }
 
-    public function startTransaction() {
+    public function startTransaction()
+    {
         $this->in_transaction = true;
         $this->pdo->beginTransaction();
     }
 
-    public function commitTransaction() {
-        if($this->in_transaction) {
+    public function commitTransaction()
+    {
+        if ($this->in_transaction) {
             $return = $this->pdo->commit();
-            if($return) {
+            if ($return) {
                 $this->in_transaction = false;
             }
             return $return;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
-    public function rollbackTransaction() {
-        if($this->in_transaction) {
+    public function rollbackTransaction()
+    {
+        if ($this->in_transaction) {
             $return = $this->pdo->rollBack();
-            if($return) {
+            if ($return) {
                 $this->in_transaction = false;
             }
             return $return;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -300,16 +326,19 @@ class MySqlSource implements SourceInterface
     // these methods are used to check outputs and do query testing
 
     // start and stop recording queries, bindings, and statement errors
-    public function startRecording() {
+    public function startRecording()
+    {
         $this->recording = true;
         $this->recording_output = [];
     }
 
-    public function stopRecording() {
+    public function stopRecording()
+    {
         $this->recording = false;
     }
 
-    public function getRecordedOutput() {
+    public function getRecordedOutput()
+    {
         return $this->recording_output;
     }
 
@@ -318,7 +347,8 @@ class MySqlSource implements SourceInterface
      *
      * @return QueryInterface $query
      */
-    public function cloneQuery() {
+    public function cloneQuery()
+    {
         return clone $this->currentquery;
     }
 
@@ -327,7 +357,8 @@ class MySqlSource implements SourceInterface
      *
      * @param $query
      */
-    public function setQuery(QueryInterface $query) {
+    public function setQuery(QueryInterface $query)
+    {
         $this->currentquery = $query;
     }
 
@@ -337,7 +368,8 @@ class MySqlSource implements SourceInterface
      *
      * @return mixed
      */
-    public function getCurrentSQL() {
+    public function getCurrentSQL()
+    {
         return $this->generateStatement();
     }
 
@@ -424,10 +456,9 @@ class MySqlSource implements SourceInterface
 
     public function limit($rows, $offset = false)
     {
-        if($offset !== false) {
+        if ($offset !== false) {
             $this->currentquery->setLimit($rows, $offset);
-        }
-        else {
+        } else {
             $this->currentquery->setLimit($rows);
         }
         return $this;
@@ -444,7 +475,7 @@ class MySqlSource implements SourceInterface
      */
     public function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false)
     {
-        if(!is_array($columnname_or_columnarray)) {
+        if (!is_array($columnname_or_columnarray)) {
             $columnname_or_columnarray = [$columnname_or_columnarray];
         }
         $this->currentquery->setOrderBy($columnname_or_columnarray, $order, $useAliases = false);
@@ -517,17 +548,15 @@ class MySqlSource implements SourceInterface
         return $this->currentquery->getBindings();
     }
 
-    private function bindByType(\PDOStatement &$statement, $param, $value) {
-        if(is_int($value)) {
+    private function bindByType(\PDOStatement &$statement, $param, $value)
+    {
+        if (is_int($value)) {
             $statement->bindValue($param, $value, \PDO::PARAM_INT);
-        }
-        else if(is_bool($value)) {
+        } else if (is_bool($value)) {
             $statement->bindValue($param, $value, \PDO::PARAM_BOOL);
-        }
-        else if(is_null($value)) {
+        } else if (is_null($value)) {
             $statement->bindValue($param, $value, \PDO::PARAM_NULL);
-        }
-        else {
+        } else {
             $statement->bindValue($param, $value, \PDO::PARAM_STR);
         }
     }
