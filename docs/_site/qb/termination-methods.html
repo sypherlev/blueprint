@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width">
+
+        <title>sypherlev/blueprint : Termination Methods</title>
+        <meta name="description" content="A better SQL query compiler for managing complex data">
+
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/css/syntax.css">
+        <link rel="stylesheet" href="/css/main.css">
+    </head>
+    <body>
+
+        <div class="container">
+            <div class="row">
+                <div id="header" class="col-sm-12">
+                    <h4><a class="brand" href="/">sypherlev/blueprint</a>
+    <small>A better SQL query compiler for managing complex data</small>
+</h4>
+
+                </div>
+            </div>
+
+            <div class="row">
+                
+                
+                    <div id="navigation" class="col-sm-2">
+                        <ul class="nav nav-list">
+    <li><a href="/">Home</a></li>
+    
+        
+        
+
+        
+    
+        
+        
+
+        
+            
+                <li class="nav-header">The Query Builder</li>
+            
+            <li data-order=""><a href="/qb/the-query-builder.html">Basic Usage</a></li>
+        
+            
+            <li data-order=""><a href="/qb/query-command-methods.html">Query Command Methods</a></li>
+        
+            
+            <li data-order=""><a href="/qb/termination-methods.html">Termination Methods</a></li>
+        
+            
+            <li data-order=""><a href="/qb/utility-and-debugging-methods.html">Utility and Debugging Methods</a></li>
+        
+    
+        
+        
+
+        
+            
+                <li class="nav-header">Patterns</li>
+            
+            <li data-order=""><a href="/pat/pattern-methods.html">Pattern Methods</a></li>
+        
+            
+            <li data-order=""><a href="/pat/using-patterns.html">Using Patterns</a></li>
+        
+    
+        
+        
+
+        
+            
+                <li class="nav-header">Filters</li>
+            
+            <li data-order=""><a href="/fil/filter-methods.html">Filter Methods</a></li>
+        
+            
+            <li data-order=""><a href="/fil/using-filters.html">Using Filters</a></li>
+        
+    
+        
+        
+
+        
+            
+                <li class="nav-header">Transformations</li>
+            
+            <li data-order=""><a href="/tra/transformation-methods.html">Transformation Methods</a></li>
+        
+            
+            <li data-order=""><a href="/tra/using-transformations.html">Using Transformations</a></li>
+        
+    
+<!-- List additional links. It is recommended to add a divider
+    e.g. <li class="divider"></li> first to break up the content. -->
+</ul>
+
+                    </div>
+
+                    <div id="content" class="col-sm-10">
+                        <div class="page-header">
+    <h2>Termination Methods
+        
+    </h2>
+</div>
+
+<p>These methods trigger a response from the database by compiling the query and sending it to the PDO connection. The query is deleted after the execution is complete.</p>
+
+<h3 id="one">one</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>$sql = false</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>$binds = false</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>Object, or false</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Returns the first matching result from the database as a plain PHP object. 
+It can accept arbitrary SQL and bindings for development purposes.</p>
+
+<hr />
+
+<h3 id="many">many</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>$sql = false</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>$binds = false</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>Array, or false</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>As one(), but instead returns an array of all matching PHP objects. 
+It can accept arbitrary SQL and bindings for development purposes.</p>
+
+<hr />
+
+<h3 id="count">count</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>none</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>integer</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Returns a COUNT(*) of the current query.</p>
+
+<hr />
+
+<h3 id="execute">execute</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>$sql = false</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>$binds = false</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>boolean</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Executes a query on the database and returns the result. Normally used only with UPDATE/INSERT/DELETE, and so only returns true or false. It can be used with SELECT, but it’s not recommended because it may produce strange behaviour.
+It can accept arbitrary SQL and bindings for development purposes.</p>
+
+<hr />
+
+<h3 id="raw">raw</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>string $sql</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>Array $values</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>string $fetch</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>$returntype</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>boolean|Array|Exception</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>WARNING: Don’t use this unless you know what you’re doing.</strong></p>
+
+<p>Executes a raw prepared SQL statement on the current database connection without using the compiler. Returns an error, a boolean for success/fail, or an array of results.</p>
+
+<p>$fetch may be set to ‘fetch’ or ‘fetchAll’.
+$returntype must be a PDO return type. (defaults to \PDO::FETCH_OBJ)</p>
+
+<hr />
+
+
+                    </div>
+                
+            </div>
+
+            
+
+            <div class="row">
+                <div id="footer" class="col-sm-12">
+                    Documentation for <a href="https://github.com/bruth/jekyll-docs-template">sypherlev/blueprint</a>
+
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function orderNav() {
+                var list,
+                    section,
+                    header,
+                    sections = [],
+                    lists = {},
+                    headers = {};
+
+                var navUl = document.querySelectorAll('#navigation ul')[0],
+                    navLis = document.querySelectorAll('#navigation ul li');
+
+                if (!navUl) return;
+
+                for (var i = 0; i < navLis.length; i++) {
+                    var order, li = navLis[i];
+
+                    if (li.classList.contains('nav-header')) {
+                        section = li.textContent || li.innerText;
+                        sections.push(section);
+                        headers[section] = li;
+                        continue;
+                    }
+
+                    if (!lists[section]) {
+                        lists[section] = [];
+                    }
+
+                    order = parseFloat(li.getAttribute('data-order'))
+                    lists[section].push([order, li]);
+                }
+
+                for (var i = 0; i < sections.length; i++) {
+                    section = sections[i];
+                    list = lists[section].sort(function(a, b) {
+                        return a[0] - b[0];
+                    });
+
+                    if (header = headers[section]) {
+                        navUl.appendChild(header);
+                    }
+                    for (var j = 0; j < list.length; j++) {
+                        navUl.appendChild(list[j][1]);
+                    }
+                }
+            }
+
+            if (document.querySelectorAll) orderNav();
+        </script>
+        
+    </body>
+</html>
