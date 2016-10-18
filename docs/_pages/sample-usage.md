@@ -1,0 +1,1 @@
+../_posts/2016-10-18-sample-usage.md
