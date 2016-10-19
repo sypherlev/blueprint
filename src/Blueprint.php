@@ -10,11 +10,11 @@ abstract class Blueprint
     private $patterns = [];
     private $filters = [];
     private $transforms = [];
+
     private $insert_records = [];
     private $set = [];
 
     private $activePattern = false;
-
     private $activeFilters = [];
     private $activeTransformations = [];
 
@@ -220,5 +220,7 @@ abstract class Blueprint
         $this->activePattern = false;
         $this->activeFilters = [];
         $this->activeTransformations = [];
+        $this->insert_records = [];
+        $this->set = [];
     }
 }
