@@ -94,7 +94,7 @@ class MySqlQuery implements QueryInterface
         if (empty($this->records)) {
             throw new \Exception('No records added for INSERT: statement cannot be executed.');
         }
-        if(isset($this->columns)) {
+        if(!empty($this->columns)) {
             $tablevalid = false;
             foreach ($this->records as $record) {
                 foreach ($record as $key => $set) {
@@ -131,7 +131,7 @@ class MySqlQuery implements QueryInterface
         if (empty($this->updates)) {
             throw new \Exception('No SET added for UPDATE: statement cannot be executed.');
         }
-        if(isset($this->columns)) {
+        if(!empty($this->columns)) {
             $tablevalid = false;
             foreach ($this->updates as $update) {
                 $valid = false;
