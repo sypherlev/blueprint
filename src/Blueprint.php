@@ -98,6 +98,7 @@ abstract class Blueprint
                 $result = call_user_func($transform, $result);
             }
         }
+        $this->reset();
         return $result;
     }
 
@@ -111,6 +112,7 @@ abstract class Blueprint
                 }
             }
         }
+        $this->reset();
         return $result;
     }
 
@@ -136,6 +138,7 @@ abstract class Blueprint
                 $source->add($record);
             }
         }
+        $this->reset();
         return $source->execute();
     }
 
@@ -147,6 +150,7 @@ abstract class Blueprint
                 $result = call_user_func($transform, $result);
             }
         }
+        $this->reset();
         return $result;
     }
 
@@ -210,5 +214,11 @@ abstract class Blueprint
         else {
             return $this->source;
         }
+    }
+
+    private function reset() {
+        $this->activePattern = false;
+        $this->activeFilters = [];
+        $this->activeTransformations = [];
     }
 }
