@@ -242,6 +242,22 @@ class MySqlQuery implements QueryInterface
         if (empty($this->columns)) {
             $this->setColumns(array_keys($record));
         }
+        else {
+            $columns_to_check = array_keys($record);
+            $validated_columns = [];
+            foreach ($this->columns as $col) {
+                if ($col->table == $this->table) {
+                    $validated_columns[] = $col->column;
+                }
+            }
+            foreach ($columns_to_check as $col) {
+                if(!in_array($col, $validated_columns)) {
+                    throw new \Exception(' PHP :: Pattern mismatch: Column '.$col.' in table '.$this->table.' failed validation in INSERT');
+                }
+            }
+            $this->columns = [];
+            $this->setColumns(array_keys($record));
+        }
         $this->newInsertEntry($record);
     }
 
@@ -390,16 +406,6 @@ class MySqlQuery implements QueryInterface
         else {
             return false;
         }
-    }
-
-    public function merge(QueryInterface $query, $type) {
-        if($type == 'context') {
-
-        }
-        if($type == 'filter') {
-
-        }
-        return $this;
     }
 
     // PRIVATE FUNCTIONS

@@ -34,7 +34,5 @@ interface QueryInterface
 
     public function getBindings();
 
-    public function merge(QueryInterface $query, $type);
-
     public function getSection($sectionName);
 }
