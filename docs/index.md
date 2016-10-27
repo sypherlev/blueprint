@@ -21,10 +21,10 @@ I found that, while building a number of large, data-driven apps, an ORM just go
 
 ### Philosophy
 
-Blueprint is designed specifically for complex data manipulation. It was based on the concept that we should not treat relational data as objects; to do so effectively sacrifices the power of a relational database for the sake of making everything an object in the code. When you're dealing with big datasets or a lot of complex operations, the constraints of making everything an object are unaffordable. Eager/lazy loading, object hydration, etc - these become a nightmare for a developer with a need for fine-grained control over how to manipulate half a million database records, or relationships that span five or six tables.
+Blueprint is designed specifically for complex data manipulation. It was based on the concept that we should not treat relational data as objects; to do so effectively sacrifices the power of a relational database for the sake of making everything an object in the code. But we still need to handle relational data sensibly, and that means applying enough object-oriented design to integrate well with our applications.
+ 
+Instead of going the ORM route, and transferring a record from a table into an object, Blueprint instead defines and stores SQL elements that may be used to interact with a table, or a set of tables through joins. When the table is queried, Blueprint can use stored elements to complete the query instead of having to rewrite the same commands over and over again. It can also store filters and transformations to make data manipulation easier.
 
-The only choice was basing it on a query builder, and there's a pretty solid one built into it. Blueprint then extends the builder by making it easy to define, reuse, and override groups of commands. It has built-in table and column name validation, if you choose to use it. You're always close to the database, and you can drop to raw SQL at any time. It allows for defined data transformations to be performed on query output.
-
-It's built using PDO, and currently supports MySQL/MariaDB. (It probably works with other SQL databases but I haven't tested it yet.)
+It's still a query builder at heart, and allows for raw SQL if needed. It's built using PDO, and currently supports MySQL/MariaDB. (It probably works with other SQL databases but I haven't tested it yet.)
 
 Highly experimental and not recommended for production work right now. Also not really recommended for basic CRUD work, unless you're more comfortable with a query builder or you expect things to get more complicated later.

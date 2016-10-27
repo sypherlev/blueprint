@@ -105,6 +105,7 @@ Here's some create and update functions:
             ->update()
             ->withPattern('summary')
             ->withFilter('onlyActive')
+            ->set($userUpdate)
             ->where(['id' => $id])
             ->execute();
     }
