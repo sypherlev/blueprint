@@ -242,27 +242,28 @@ class MySqlSource implements SourceInterface
 
     /**
      * Sets a whitelist for the columns in the case where the query is executing with
-     * user input as the column names
+     * user input as the column names. Takes an array or a string
      *
-     * @param array $whitelist
+     * @param array|string $whitelist
      * @return $this
      */
-    public function setColumnWhitelist(Array $whitelist)
+    public function addToColumnWhitelist($whitelist)
     {
-        $this->currentquery->setColumnWhitelist($whitelist);
+        $this->currentquery->addToColumnWhitelist($whitelist);
         return $this;
     }
 
     /**
      * Sets a whitelist for the tables in the case where the query is executing with
      * user input as the table names. Applies to the primary table and all joined tables
+     * Accepts an array or a string
      *
-     * @param array $whitelist
+     * @param array|string $whitelist
      * @return $this
      */
-    public function setTableWhitelist(Array $whitelist)
+    public function addToTableWhitelist($whitelist)
     {
-        $this->currentquery->setTableWhitelist($whitelist);
+        $this->currentquery->addToTableWhitelist($whitelist);
         return $this;
     }
 

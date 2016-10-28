@@ -46,8 +46,18 @@ class MySqlQuery implements QueryInterface
         if($this->table === false || $this->type === false) {
             throw (new \Exception('Query compilation failure: missing table or type'));
         }
-        $generatefunction = 'generate' . $this->type . 'Statement';
-        return $this->{$generatefunction}();
+        switch ($this->type) {
+            case 'SELECT':
+                return $this->generateSELECTStatement();
+            case 'UPDATE':
+                return $this->generateUPDATEStatement();
+            case 'INSERT':
+                return $this->generateINSERTStatement();
+            case 'DELETE':
+                return $this->generateDELETEStatement();
+            default:
+                return false;
+        }
     }
 
     private function generateSELECTStatement()
@@ -384,11 +394,25 @@ class MySqlQuery implements QueryInterface
     }
 
     public function addToColumnWhitelist($column) {
-        $this->columnwhitelist[] = $column;
+        if(is_array($column)) {
+            foreach ($column as $col) {
+                $this->columnwhitelist[] = $col;
+            }
+        }
+        else {
+            $this->columnwhitelist[] = $column;
+        }
     }
 
     public function addToTableWhitelist($table) {
-        $this->tablewhitelist[] = $table;
+        if(is_array($table)) {
+            foreach ($table as $tab) {
+                $this->tablewhitelist[] = $tab;
+            }
+        }
+        else {
+            $this->tablewhitelist[] = $table;
+        }
     }
 
     public function getBindings() {
