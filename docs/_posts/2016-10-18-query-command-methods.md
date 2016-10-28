@@ -23,6 +23,8 @@ Sets the current query type to SELECT, UPDATE, INSERT, or DELETE
 
 Sets the current table name.
 
+**WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.** Doing so may leave your code vulnerable to SQL injection.
+
 ---
 
 ### columns 
@@ -40,6 +42,8 @@ Sets the columns to attach to the current query. This can accept five different 
 If used with update() or insert(), the column names in add() or set() will be validated against this configuration.
 
 `*` may be substituted in the form `array($tablename => array('*')`, but this will trigger a validation error when used with update() or insert().
+
+**WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.** Doing so may leave your code vulnerable to SQL injection.
 
 ---
 
