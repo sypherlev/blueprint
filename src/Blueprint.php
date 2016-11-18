@@ -60,7 +60,7 @@ abstract class Blueprint
 
     protected function withTransformation($transformName) {
         if(!isset($this->transforms[$transformName])) {
-            throw (new \Exception('Could not set filter '.$transformName.': filter not found'));
+            throw (new \Exception('Could not set transformation '.$transformName.': transformation not found'));
         }
         $this->activeTransformations[] = $transformName;
         return $this;
