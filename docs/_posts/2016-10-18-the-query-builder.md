@@ -19,7 +19,7 @@ This produces the SQL string below:
 
     SELECT * FROM `houses` WHERE `houses`.`architect` = :wh0 ORDER BY `houses`.`date_constructed`;
     
-Commands may be added in any order, but the query will only be executed and a result returned when a termination method is called.
+Once a query type and a primary table are set, additional commands may be added in any order, but the query will only be executed and a result returned when a termination method is called.
 
 If running any query:
 

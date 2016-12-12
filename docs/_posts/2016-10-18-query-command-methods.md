@@ -59,7 +59,7 @@ Adds a where sequence to the query. The $where array has two possible formats:
     array($tableone => array($column => $param, ...), $tabletwo => array($column => $param, ...), ...)
     
 * Column names can use the format 'columnname operand' to use operands other than '=', e.g. 'id >'
-* Valid operands: `>\|<\|>=\|<=\|like\|in`
+* Valid operands: `>|<|>=|<=|like|in`
 * If the tablename is not specified in the $where array parameter, the primary table will be used instead
 * Using the IN operand will force the param to be treated as an array. 
 * Setting the param to NULL will force the operand to IS.
