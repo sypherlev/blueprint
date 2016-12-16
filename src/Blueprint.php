@@ -95,7 +95,7 @@ abstract class Blueprint
         $result = $source->one();
         if($result && !empty($this->activeTransformations)) {
             foreach ($this->activeTransformations as $transform) {
-                $result = call_user_func($transform, $result);
+                $result = call_user_func($this->transforms[$transform], $result);
             }
         }
         $this->reset();
@@ -108,7 +108,7 @@ abstract class Blueprint
         if($result && !empty($this->activeTransformations)) {
             foreach ($result as $idx => $r) {
                 foreach ($this->activeTransformations as $transform) {
-                    $result[$idx] = call_user_func($transform, $r);
+                    $result[$idx] = call_user_func($this->transforms[$transform], $r);
                 }
             }
         }
@@ -126,7 +126,7 @@ abstract class Blueprint
         if(!empty($this->transforms) && !empty($this->insert_records)) {
             foreach ($this->transforms as $transformation) {
                 foreach ($this->insert_records as $idx => $record) {
-                    $this->insert_records[$idx] = call_user_func($transformation, $record);
+                    $this->insert_records[$idx] = call_user_func($this->transforms[$transformation], $record);
                 }
             }
         }
