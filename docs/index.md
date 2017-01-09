@@ -9,7 +9,7 @@ Blueprint is an extended query builder that allows you to define, reuse, and ove
 
 ### Background
 
-ORMs such as Doctrine and Propel are based on the concept of mapping a record in a table to an object, with the columns becoming the object's properties. This approach has many benefits - for example, it simplifies the codebase, and it's more accessible to developers who are less familiar with SQL. It's far less suitable for apps with large, complex data relationships, however, and many developers find the loss of flexibility and control to be annoying.
+ORMs such as Doctrine and Propel are based on the concept of mapping a record in a table to an object, with the columns becoming the object's properties. This approach has many benefits - for example, it simplifies the codebase, and it's more accessible to developers who are not too familiar with SQL. It's far less suitable for apps with large, complex data relationships, however, and many developers find the loss of flexibility and control to be annoying.
 
 In short: working with an ORM pulls you away from the database, and this isn't a good solution if you find yourself having to fight your way back to the database to get something done.
 
@@ -27,4 +27,4 @@ Instead of going the ORM route, and transferring a record from a table into an o
 
 It's still a query builder at heart, and allows for raw SQL if needed. It's built using PDO, and currently supports MySQL/MariaDB. (It probably works with other SQL databases but I haven't tested it yet.)
 
-Highly experimental and not recommended for production work right now. Also not really recommended for basic CRUD work, unless you're more comfortable with a query builder or you expect things to get more complicated later.
+As it's purpose-built for managing and processing large blocks of complex relational data, Blueprint is not recommended for basic CRUD work.
