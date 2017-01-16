@@ -3,13 +3,22 @@
   "description": "DBAL package that performs data operations through applying patterns",
   "type": "library",
   "license": "MIT",
-  "keywords": [ "sql", "database", "query" ],
+  "keywords": [
+    "sql",
+    "database",
+    "query"
+  ],
   "autoload": {
-    "psr-4": { "SypherLev\\Blueprint\\": "src" }
+    "psr-4": {
+      "SypherLev\\Blueprint\\": "src"
+    }
   },
   "prefer-stable": true,
   "require": {
     "php": ">=7.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.7.*"
   },
   "authors": [
     {
