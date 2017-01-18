@@ -24,6 +24,7 @@ class MySqlQuery implements QueryInterface
     private $records = [];
     private $updates = [];
     private $group = [];
+    private $aggregates = [];
     // init: this is not a count query
     private $count = false;
 
@@ -37,13 +38,15 @@ class MySqlQuery implements QueryInterface
 
     private $allowedjoins = ['INNER', 'OUTER', 'LEFT', 'RIGHT'];
     private $allowedorders = ['ASC', 'DESC'];
+    private $allowedaggregates = ['SUM', 'COUNT', 'AVG', 'MAX', 'MIN'];
     private $allowedtypes = ['SELECT', 'UPDATE', 'INSERT', 'DELETE'];
 
     // WHERE THE MAGIC HAPPENS
 
-    public function compile() {
+    public function compile()
+    {
         // check for the bare minimum
-        if($this->table === false || $this->type === false) {
+        if ($this->table === false || $this->type === false) {
             throw (new \Exception('Query compilation failure: missing table or type'));
         }
         switch ($this->type) {
@@ -65,6 +68,11 @@ class MySqlQuery implements QueryInterface
         $query = $this->type . ' ';
         if (!empty($this->columns)) {
             $query .= $this->compileColumns();
+            if (!empty($this->aggregates)) {
+                $query .= ', ' . $this->compileAggregates();
+            }
+        } else if (empty($this->columns && !empty($this->aggregates))) {
+            $query .= $this->compileAggregates();
         } else if ($this->count) {
             $query .= 'COUNT(*) AS count ';
         } else {
@@ -104,25 +112,25 @@ class MySqlQuery implements QueryInterface
         if (empty($this->records)) {
             throw new \Exception('No records added for INSERT: statement cannot be executed.');
         }
-        if(!empty($this->columns)) {
+        if (!empty($this->columns)) {
             $tablevalid = false;
             foreach ($this->records as $record) {
                 foreach ($record as $key => $set) {
                     $valid = false;
                     foreach ($this->columns as $column) {
-                        if($column->table == $this->table) {
+                        if ($column->table == $this->table) {
                             $tablevalid = true;
                         }
-                        if($column->table == $this->table && $column->column == $key) {
+                        if ($column->table == $this->table && $column->column == $key) {
                             $valid = true;
                         }
                     }
-                    if(!$valid) {
-                        throw new \Exception(' PHP :: Pattern mismatch: Column '.$key.' in table '.$this->table.' failed validation in INSERT');
+                    if (!$valid) {
+                        throw new \Exception(' PHP :: Pattern mismatch: Column ' . $key . ' in table ' . $this->table . ' failed validation in INSERT');
                     }
                 }
             }
-            if(!$tablevalid) {
+            if (!$tablevalid) {
                 throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in INSERT');
             }
         }
@@ -141,23 +149,23 @@ class MySqlQuery implements QueryInterface
         if (empty($this->updates)) {
             throw new \Exception('No SET added for UPDATE: statement cannot be executed.');
         }
-        if(!empty($this->columns)) {
+        if (!empty($this->columns)) {
             $tablevalid = false;
             foreach ($this->updates as $update) {
                 $valid = false;
                 foreach ($this->columns as $column) {
-                    if($column->table == $this->table) {
+                    if ($column->table == $this->table) {
                         $tablevalid = true;
                     }
-                    if($column->table == $this->table && $column->column == $update->column) {
+                    if ($column->table == $this->table && $column->column == $update->column) {
                         $valid = true;
                     }
                 }
-                if(!$valid) {
-                    throw new \Exception(' PHP :: Pattern mismatch: Column '.$update->column.' in table '.$this->table.' failed validation in UPDATE');
+                if (!$valid) {
+                    throw new \Exception(' PHP :: Pattern mismatch: Column ' . $update->column . ' in table ' . $this->table . ' failed validation in UPDATE');
                 }
             }
-            if(!$tablevalid) {
+            if (!$tablevalid) {
                 throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in UPDATE');
             }
         }
@@ -251,8 +259,7 @@ class MySqlQuery implements QueryInterface
         }
         if (empty($this->columns)) {
             $this->setColumns(array_keys($record));
-        }
-        else {
+        } else {
             $columns_to_check = array_keys($record);
             $validated_columns = [];
             foreach ($this->columns as $col) {
@@ -261,8 +268,8 @@ class MySqlQuery implements QueryInterface
                 }
             }
             foreach ($columns_to_check as $col) {
-                if(!in_array($col, $validated_columns)) {
-                    throw new \Exception(' PHP :: Pattern mismatch: Column '.$col.' in table '.$this->table.' failed validation in INSERT');
+                if (!in_array($col, $validated_columns)) {
+                    throw new \Exception(' PHP :: Pattern mismatch: Column ' . $col . ' in table ' . $this->table . ' failed validation in INSERT');
                 }
             }
             $this->columns = [];
@@ -271,7 +278,8 @@ class MySqlQuery implements QueryInterface
         $this->newInsertEntry($record);
     }
 
-    public function setLimit($rows, $offset = 0) {
+    public function setLimit($rows, $offset = 0)
+    {
         $this->limit = new \stdClass();
         $this->limit->rows = $rows;
         $this->limit->offset = $offset;
@@ -302,14 +310,12 @@ class MySqlQuery implements QueryInterface
                 }
                 $this->newWhereEntry($where, $innercondition, $outercondition);
                 break;
-            }
-            else if(is_array($value) && strpos($key, ' IN') !== false) {
+            } else if (is_array($value) && strpos($key, ' IN') !== false) {
                 // then this is an IN or NOT IN array
                 $where = [$placeholder => $where];
                 $this->newWhereEntry($where, $innercondition, $outercondition);
                 break;
-            }
-            else {
+            } else {
                 if ($this->hasNumericKeys($where)) {
                     throw (new \Exception('Bad where relations array: array must have string keys in the format column => param or table => [column => param]'));
                 }
@@ -327,12 +333,12 @@ class MySqlQuery implements QueryInterface
             $table = $this->table;
         }
         if (!in_array($direction, $this->allowedorders)) {
-            throw (new \Exception('Disallowed ORDER BY type: order must be one of ASC|DESC'));
+            throw (new \Exception('Disallowed ORDER BY type: order must be one of ' . implode('|', $this->allowedorders)));
         }
         if (!$this->hasNumericKeys($orderby)) {
             // then this is an array of tables
             foreach ($orderby as $table => $cols) {
-                if(is_array($cols)) {
+                if (is_array($cols)) {
                     foreach ($cols as $col) {
                         if (is_string($col)) {
                             $this->newOrderEntry($col, $table);
@@ -340,8 +346,7 @@ class MySqlQuery implements QueryInterface
                             throw (new \Exception('Invalid non-string column name in ORDER BY clause'));
                         }
                     }
-                }
-                else {
+                } else {
                     if (is_string($cols)) {
                         $this->newOrderEntry($cols, $table);
                     } else {
@@ -366,6 +371,30 @@ class MySqlQuery implements QueryInterface
         $this->direction = $direction;
     }
 
+    public function setAggregate($function, $columnName_or_columnArray, $alias = false)
+    {
+        $table = false;
+        if (!empty($this->table)) {
+            $table = $this->table;
+        }
+        if (!in_array($function, $this->allowedaggregates)) {
+            throw (new \Exception('Disallowed aggregate function: aggregate must be one of ' . implode('|', $this->allowedaggregates)));
+        }
+        if (is_array($columnName_or_columnArray)) {
+            // then this is an array in the form [$tableName => $columnName]
+            foreach ($columnName_or_columnArray as $tableName => $columnName) {
+                $this->newAggregateEntry($function, $columnName, $tableName, $alias);
+                break;
+            }
+        } else {
+            if (is_string($columnName_or_columnArray)) {
+                $this->newAggregateEntry($function, $columnName_or_columnArray, $table, $alias);
+            } else {
+                throw (new \Exception("Invalid non-string column name in $function() clause"));
+            }
+        }
+    }
+
     public function setGroupBy(Array $groupby)
     {
         $table = false;
@@ -373,7 +402,7 @@ class MySqlQuery implements QueryInterface
             $table = $this->table;
         }
         if (!$this->hasNumericKeys($groupby)) {
-            // then this is an array of tables
+            // then this is an array of tables => columns
             foreach ($groupby as $table => $col) {
                 if (is_string($col)) {
                     $this->newGroupEntry($table, $col);
@@ -393,29 +422,30 @@ class MySqlQuery implements QueryInterface
         }
     }
 
-    public function addToColumnWhitelist($column) {
-        if(is_array($column)) {
+    public function addToColumnWhitelist($column)
+    {
+        if (is_array($column)) {
             foreach ($column as $col) {
                 $this->columnwhitelist[] = $col;
             }
-        }
-        else {
+        } else {
             $this->columnwhitelist[] = $column;
         }
     }
 
-    public function addToTableWhitelist($table) {
-        if(is_array($table)) {
+    public function addToTableWhitelist($table)
+    {
+        if (is_array($table)) {
             foreach ($table as $tab) {
                 $this->tablewhitelist[] = $tab;
             }
-        }
-        else {
+        } else {
             $this->tablewhitelist[] = $table;
         }
     }
 
-    public function getBindings() {
+    public function getBindings()
+    {
         $bindings = [];
         foreach ($this->bindings as $type => $bindinglist) {
             $bindings = array_merge($bindings, $bindinglist);
@@ -423,45 +453,62 @@ class MySqlQuery implements QueryInterface
         return $bindings;
     }
 
-    public function getSection($sectionName) {
-        if(property_exists($this, $sectionName)) {
+    public function getSection($sectionName)
+    {
+        if (property_exists($this, $sectionName)) {
             return $this->{$sectionName};
-        }
-        else {
+        } else {
             return false;
         }
     }
 
     // PRIVATE FUNCTIONS
 
-    // COMPILATION STUFF
+    // COMPILATION FUNCTIONS
 
-    private function compileColumns() {
+    private function compileColumns()
+    {
         $columnstring = '';
         foreach ($this->columns as $columnentry) {
-            if($columnentry->table == false) {
+            if ($columnentry->table == false) {
                 $columnentry->table = $this->table;
             }
-            if($columnentry->column == '*') {
-                $columnstring .= '`'.$columnentry->table.'`.'.$columnentry->column;
+            if ($columnentry->column == '*') {
+                $columnstring .= '`' . $columnentry->table . '`.' . $columnentry->column;
+            } else {
+                $columnstring .= '`' . $columnentry->table . '`.`' . $columnentry->column . '`';
             }
-            else {
-                $columnstring .= '`'.$columnentry->table.'`.`'.$columnentry->column.'`';
-            }
-            if($columnentry->alias !== false) {
-                $columnstring .= ' AS `'.$columnentry->alias.'`';
+            if ($columnentry->alias !== false) {
+                $columnstring .= ' AS `' . $columnentry->alias . '`';
             }
             $columnstring .= ', ';
         }
-        return rtrim($columnstring, ', '). ' ';
+        return rtrim($columnstring, ', ') . ' ';
     }
 
-    private function compileJoins() {
+    private function compileAggregates()
+    {
+        $aggregatestring = '';
+        foreach ($this->aggregates as $aggentry) {
+            if ($aggentry->table == false) {
+                $aggentry->table = $this->table;
+            }
+                $aggregatestring .= $aggentry->function . '(`' . $aggentry->table . '`.' . $aggentry->column . '`)';
+            if ($aggentry->alias !== false) {
+                $aggregatestring .= ' AS `' . $aggentry->alias . '`';
+            }
+            $aggregatestring .= ', ';
+        }
+        return rtrim($aggregatestring, ', ') . ' ';
+    }
+
+    private function compileJoins()
+    {
         $compilestring = '';
         foreach ($this->joins as $joinentry) {
-            $compilestring .= $joinentry->type. ' JOIN `'.$joinentry->secondtable. '` ON ';
+            $compilestring .= $joinentry->type . ' JOIN `' . $joinentry->secondtable . '` ON ';
             foreach ($joinentry->relations as $first => $second) {
-                $compilestring .= '`'.$joinentry->firsttable.'`.`'.$first.'` = `'.$joinentry->secondtable.'`.`'.$second.'` AND ';
+                $compilestring .= '`' . $joinentry->firsttable . '`.`' . $first . '` = `' . $joinentry->secondtable . '`.`' . $second . '` AND ';
             }
             $compilestring = rtrim($compilestring, ' AND ');
             $compilestring .= ' ';
@@ -469,79 +516,76 @@ class MySqlQuery implements QueryInterface
         return $compilestring;
     }
 
-    private function compileWheres() {
+    private function compileWheres()
+    {
         $compilestring = 'WHERE ';
         foreach ($this->wheres as $whereentry) {
-            foreach($whereentry->params as $table => $columns) {
-                if($table === 'sypherlev_blueprint_tablename_placeholder') {
+            foreach ($whereentry->params as $table => $columns) {
+                if ($table === 'sypherlev_blueprint_tablename_placeholder' || $table === false) {
                     $table = $this->table;
                 }
                 $compilestring .= '(';
                 foreach ($columns as $column => $placeholder) {
                     $operand = $this->checkOperand($column, $placeholder);
-                    $compilestring .= '`'.$table.'`.`'.$this->stripOperands($column).'` '.$operand.' '.$placeholder.' '.$whereentry->inner.' ';
+                    $compilestring .= '`' . $table . '`.`' . $this->stripOperands($column) . '` ' . $operand . ' ' . $placeholder . ' ' . $whereentry->inner . ' ';
                 }
-                $compilestring = rtrim($compilestring, ' '.$whereentry->inner.' ');
-                $compilestring .= ') '.$whereentry->outer.' ';
+                $compilestring = rtrim($compilestring, ' ' . $whereentry->inner . ' ');
+                $compilestring .= ') ' . $whereentry->outer . ' ';
             }
         }
         $compilestring = rtrim($compilestring, 'AND ');
-        return rtrim($compilestring, 'OR ').' ';
+        return rtrim($compilestring, 'OR ') . ' ';
     }
 
-    private function compileGroup() {
+    private function compileGroup()
+    {
         $compilestring = 'GROUP BY ';
         foreach ($this->group as $groupentry) {
-            $compilestring .= '`'.$groupentry->table.'`.`'.$groupentry->column.'`, ';
+            $compilestring .= '`' . $groupentry->table . '`.`' . $groupentry->column . '`, ';
         }
-        return rtrim($compilestring, ', ').' ';
+        return rtrim($compilestring, ', ') . ' ';
     }
 
-    private function compileOrder() {
+    private function compileOrder()
+    {
         $compilestring = 'ORDER BY ';
         foreach ($this->order as $orderentry) {
-            if($orderentry->table !== false) {
-                $compilestring .= '`'.$orderentry->table.'`.';
+            if ($orderentry->table !== false) {
+                $compilestring .= '`' . $orderentry->table . '`.';
             }
-            $compilestring .= '`'.$orderentry->column.'`, ';
+            $compilestring .= '`' . $orderentry->column . '`, ';
         }
-        return rtrim($compilestring, ', ').' '.$this->direction.' ';
+        return rtrim($compilestring, ', ') . ' ' . $this->direction . ' ';
     }
 
-    private function compileLimit() {
-        return 'LIMIT '.(int)$this->limit->offset.', '.(int)$this->limit->rows.' ';
+    private function compileLimit()
+    {
+        return 'LIMIT ' . (int)$this->limit->offset . ', ' . (int)$this->limit->rows . ' ';
     }
 
-    private function compileRecords() {
+    private function compileRecords()
+    {
         $compilestring = '';
         foreach ($this->records as $record) {
             $compilestring .= '(';
             foreach ($record as $column => $placeholder) {
-                $compilestring .= $placeholder.', ';
+                $compilestring .= $placeholder . ', ';
             }
-            $compilestring = rtrim($compilestring, ', ').'), ';
+            $compilestring = rtrim($compilestring, ', ') . '), ';
         }
-        return rtrim($compilestring, ', ').' ';
+        return rtrim($compilestring, ', ') . ' ';
     }
 
-    private function compileUpdates() {
+    private function compileUpdates()
+    {
         $compilestring = '';
         foreach ($this->updates as $updateentry) {
-            $compilestring .= '`'.$updateentry->column.'` = '.$updateentry->param.', ';
+            $compilestring .= '`' . $updateentry->column . '` = ' . $updateentry->param . ', ';
         }
-        return rtrim($compilestring, ', ').' ';
+        return rtrim($compilestring, ', ') . ' ';
     }
 
-    // OTHER STUFF
-
-    private function hasNumericKeys(Array $array){
-        foreach ($array as $key => $value) {
-            if (!is_string($key)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // PARSING AND VALIDATION FUNCTIONS
 
     private function newUpdateEntry($column, $param)
     {
@@ -558,15 +602,11 @@ class MySqlQuery implements QueryInterface
 
     private function newColumnEntry($column, $alias, $table = false)
     {
-        if (!empty($this->columnwhitelist)) {
-            if (!in_array($column, $this->columnwhitelist)) {
-                throw (new \Exception('Column in selection list not found in white list'));
-            }
+        if (!$this->validateColumnName($column)) {
+            throw (new \Exception('Column in selection list not found in white list'));
         }
-        if (!empty($this->tablewhitelist)) {
-            if ($table !== false && !in_array($table, $this->tablewhitelist)) {
-                throw (new \Exception('Table name in selection list not found in white list'));
-            }
+        if ($table !== false && !$this->validateTableName($table)) {
+            throw (new \Exception('Table name in selection list not found in white list'));
         }
         $newcolumn = new \stdClass();
         $newcolumn->table = $table;
@@ -577,15 +617,11 @@ class MySqlQuery implements QueryInterface
 
     private function newOrderEntry($column, $table = false)
     {
-        if (!empty($this->columnwhitelist)) {
-            if (!in_array($column, $this->columnwhitelist)) {
-                throw (new \Exception('Column in ORDER BY not found in white list'));
-            }
+        if (!$this->validateColumnName($column)) {
+            throw (new \Exception('Column in ORDER BY not found in white list'));
         }
-        if (!empty($this->tablewhitelist)) {
-            if ($table !== false && !in_array($table, $this->tablewhitelist)) {
-                throw (new \Exception('Table name in ORDER BY not found in white list'));
-            }
+        if ($table !== false && !$this->validateTableName($table)) {
+            throw (new \Exception('Table name in ORDER BY not found in white list'));
         }
         $neworder = new \stdClass();
         $neworder->table = $table;
@@ -593,17 +629,29 @@ class MySqlQuery implements QueryInterface
         $this->order[] = $neworder;
     }
 
+    private function newAggregateEntry($function, $column, $table = false, $alias = '')
+    {
+        if (!$this->validateColumnName($column)) {
+            throw (new \Exception("Column in $function(`$table`.`$column`) not found in white list"));
+        }
+        if ($table !== false && !$this->validateTableName($table)) {
+            throw (new \Exception("Table name in $function(`$table`.`$column`) not found in white list"));
+        }
+        $newagg = new \stdClass();
+        $newagg->table = $table;
+        $newagg->column = $column;
+        $newagg->function = $function;
+        $newagg->alias = $alias;
+        $this->aggregates[] = $newagg;
+    }
+
     private function newGroupEntry($table, $column)
     {
-        if (!empty($this->columnwhitelist)) {
-            if (!in_array($column, $this->columnwhitelist)) {
-                throw (new \Exception('Column in GROUP BY not found in white list'));
-            }
+        if (!$this->validateColumnName($column)) {
+            throw (new \Exception('Column in GROUP BY not found in white list'));
         }
-        if (!empty($this->tablewhitelist)) {
-            if ($table !== false && !in_array($table, $this->tablewhitelist)) {
-                throw (new \Exception('Table name in GROUP BY not found in white list'));
-            }
+        if ($table !== false && !$this->validateTableName($table)) {
+            throw (new \Exception('Table name in GROUP BY not found in white list'));
         }
         $newgroup = new \stdClass();
         $newgroup->table = $table;
@@ -614,16 +662,12 @@ class MySqlQuery implements QueryInterface
     private function newJoinEntry($firsttable, $secondtable, Array $relations, $type)
     {
         foreach ($relations as $column1 => $column2) {
-            if (!empty($this->columnwhitelist)) {
-                if (!in_array($column1, $this->columnwhitelist) || !in_array($column2, $this->columnwhitelist)) {
-                    throw (new \Exception('Column in JOIN not found in white list'));
-                }
+            if (!$this->validateColumnName($column1) || !$this->validateColumnName($column2)) {
+                throw (new \Exception('Column in JOIN not found in white list'));
             }
         }
-        if (!empty($this->tablewhitelist)) {
-            if (!in_array($firsttable, $this->tablewhitelist) || !in_array($secondtable, $this->tablewhitelist)) {
-                throw (new \Exception('Table name in ORDER BY not found in white list'));
-            }
+        if (!$this->validateTableName($firsttable) || !$this->validateTableName($secondtable)) {
+            throw (new \Exception('Table name in JOIN not found in white list'));
         }
         $newjoin = new \stdClass();
         $newjoin->firsttable = $firsttable;
@@ -635,37 +679,24 @@ class MySqlQuery implements QueryInterface
 
     private function newWhereEntry($paramArray, $inner, $outer)
     {
-        if (!empty($this->columnwhitelist)) {
-            foreach ($paramArray as $table => $columns) {
-                foreach ($columns as $column => $param) {
-                    $column = $this->stripOperands($column);
-                    if (!in_array($column, $this->columnwhitelist)) {
-                        throw (new \Exception('Column in WHERE not found in white list'));
-                    }
-                }
-            }
-        }
-        if (!empty($this->tablewhitelist)) {
-            foreach ($paramArray as $table => $columns) {
-                if ($table !== false && !in_array($table, $this->tablewhitelist)) {
-                    throw (new \Exception('Table name in WHERE not found in white list'));
-                }
-            }
-        }
         foreach ($paramArray as $table => $columns) {
+            if (!$this->validateTableName($table)) {
+                throw (new \Exception('Table name in WHERE not found in white list'));
+            }
             foreach ($columns as $column => $param) {
-                if(strpos($column, ' IN') !== false && is_array($param)) {
+                if (!$this->validateColumnName($column)) {
+                    throw (new \Exception('Column in WHERE not found in white list'));
+                }
+                if (strpos($column, ' IN') !== false && is_array($param)) {
                     $paramstring = '(';
                     foreach ($param as $in) {
-                        $paramstring .= $this->newBindEntry($in).', ';
+                        $paramstring .= $this->newBindEntry($in) . ', ';
                     }
-                    $paramstring = rtrim($paramstring, ', ').')';
+                    $paramstring = rtrim($paramstring, ', ') . ')';
                     $paramArray[$table][$column] = $paramstring;
-                }
-                else if($param !== null) {
+                } else if ($param !== null) {
                     $paramArray[$table][$column] = $this->newBindEntry($param);
-                }
-                else {
+                } else {
                     $paramArray[$table][$column] = 'NULL';
                 }
             }
@@ -679,31 +710,30 @@ class MySqlQuery implements QueryInterface
 
     private function newInsertEntry(Array $record)
     {
-        if (!empty($this->columnwhitelist)) {
-            foreach ($record as $column => $param) {
-                if (!in_array($column, $this->columnwhitelist)) {
-                    throw (new \Exception('Column in INSERT array not found in white list'));
-                }
-            }
-        }
         foreach ($record as $column => $param) {
+            if (!$this->validateColumnName($column)) {
+                throw (new \Exception('Column in INSERT array not found in white list'));
+            }
             $record[$column] = $this->newBindEntry($param, ':ins');
         }
         $this->records[] = $record;
     }
 
-    private function newBindEntry($param, $type = ':wh') {
-        if(!isset($this->bindings[$type])) {
+    private function newBindEntry($param, $type = ':wh')
+    {
+        if (!isset($this->bindings[$type])) {
             $this->bindings[$type] = [];
         }
         $count = count($this->bindings[$type]);
-        $this->bindings[$type][$type.$count] = $param;
-        return $type.$count;
+        $this->bindings[$type][$type . $count] = $param;
+        return $type . $count;
     }
+
+    // ADDITONAL FUNCTIONS
 
     private function checkOperand($variable, $param)
     {
-        if($param == 'NULL' && strpos($variable, '!=') !== false) {
+        if ($param == 'NULL' && strpos($variable, '!=') !== false) {
             return 'IS NOT';
         }
         if (strpos($variable, '!==') !== false) {
@@ -736,7 +766,7 @@ class MySqlQuery implements QueryInterface
         if (strpos(strtolower($variable), ' in') !== false) {
             return 'IN';
         }
-        if($param === 'NULL') {
+        if ($param === 'NULL') {
             return 'IS';
         }
         return '=';
@@ -756,5 +786,29 @@ class MySqlQuery implements QueryInterface
         $variable = rtrim($variable, '>');
         $variable = rtrim($variable, '<');
         return rtrim($variable, ' ');
+    }
+
+    private function hasNumericKeys(Array $array)
+    {
+        foreach ($array as $key => $value) {
+            if (!is_string($key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function validateTableName($table) {
+        if(!empty($this->tablewhitelist) && !in_array($table, $this->tablewhitelist)) {
+            return false;
+        }
+        return true;
+    }
+
+    private function validateColumnName($column) {
+        if(!empty($this->columnwhitelist) && !in_array($column, $this->columnwhitelist)) {
+            return false;
+        }
+        return true;
     }
 }

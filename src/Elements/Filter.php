@@ -2,7 +2,7 @@
 
 namespace SypherLev\Blueprint\Elements;
 
-use SypherLev\Blueprint\QueryBuilders\SourceInterface;
+use SypherLev\Blueprint\QueryBuilders\QueryInterface;
 
 class Filter
 {
@@ -37,24 +37,19 @@ class Filter
         return $this;
     }
 
-    public function groupBy($columnname_or_columnarray) {
-        $this->group = $columnname_or_columnarray;
-        return $this;
-    }
-
-    public function setSourceParams(SourceInterface $source) {
+    public function setQueryParams(QueryInterface $query) {
         if(!empty($this->order)) {
-            $source->orderBy($this->order['columns'], $this->order['order'], $this->order['aliases']);
+            $query->setOrderBy($this->order['columns'], $this->order['order'], $this->order['aliases']);
         }
         if(!empty($this->limit)) {
-            $source->limit($this->limit['rows'], $this->limit['offset']);
+            $query->setLimit($this->limit['rows'], $this->limit['offset']);
         }
         foreach ($this->wheres as $where) {
-            $source->where($where['where'], $where['inner'], $where['outer']);
+            $query->where($where['where'], $where['inner'], $where['outer']);
         }
         if(!empty($this->group)) {
-            $source->groupBy($this->group);
+            $query->groupBy($this->group);
         }
-        return $source;
+        return $query;
     }
 }

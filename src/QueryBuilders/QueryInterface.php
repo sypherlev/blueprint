@@ -26,6 +26,8 @@ interface QueryInterface
 
     public function setOrderBy(Array $orderby, $direction = 'ASC', $aliases = false);
 
+    public function setAggregate($function, $columnName_or_columnArray, $alias = '');
+
     public function setGroupBy(Array $groupby);
 
     public function addToColumnWhitelist($column);
