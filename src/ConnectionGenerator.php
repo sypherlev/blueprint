@@ -55,19 +55,12 @@ class ConnectionGenerator
     }
 
     private function validateConfig() {
-        if($this->driver == '') {
-            return false;
-        }
-        if($this->host == '') {
-            return false;
-        }
-        if($this->database == '') {
-            return false;
-        }
-        if($this->user == '') {
-            return false;
-        }
-        if($this->pass == '') {
+        if($this->driver == '' ||
+            $this->host == '' ||
+            $this->database == '' ||
+            $this->user == '' ||
+            $this->pass == ''
+        ) {
             return false;
         }
         return true;
