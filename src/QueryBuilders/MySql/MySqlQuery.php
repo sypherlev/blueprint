@@ -178,7 +178,7 @@ class MySqlQuery implements QueryInterface
     public function setType($type)
     {
         if (!in_array($type, $this->allowedtypes)) {
-            throw (new \Exception('Disallowed query type: query must be one of SELECT|UPDATE|INSERT|DELETE'));
+            throw (new \Exception('Disallowed query type: query must be one of '.implode('|', $this->allowedtypes)));
         }
         $this->type = $type;
     }
@@ -273,7 +273,7 @@ class MySqlQuery implements QueryInterface
     public function setJoin($first, $second, Array $on, $type = 'INNER')
     {
         if (!in_array($type, $this->allowedjoins)) {
-            throw (new \Exception('Disallowed JOIN type: joins must be one of INNER|OUTER|LEFT|RIGHT'));
+            throw (new \Exception('Disallowed JOIN type: joins must be one of '.implode('|', $this->allowedjoins)));
         }
         if ($this->hasNumericKeys($on)) {
             throw (new \Exception('Bad join relations array: array must have string keys in the format column1 => column2'));
