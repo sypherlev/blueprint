@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         backupGlobals="false"
+         verbose="true">
+    <testsuites>
+        <testsuite name="small">
+            <file>tests/BlueprintTest.php</file>
+            <file>tests/MySqlQueryTest.php</file>
+            <file>tests/MySqlSourceTest.php</file>
+            <file>tests/ConnectionGeneratorTest.php</file>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">src</directory>
+        </whitelist>
+    </filter>
+
+    <php>
+        <const name="PHPUNIT_TESTSUITE" value="true"/>
+    </php>
+</phpunit>
