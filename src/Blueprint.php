@@ -124,14 +124,14 @@ abstract class Blueprint
     protected function execute() {
         $query = $this->loadElements();
         if(!empty($this->activeTransformations) && !empty($this->set)) {
-            foreach ($this->transforms as $transformation) {
-                $this->set = call_user_func($transformation, $this->set);
+            foreach ($this->activeTransformations as $transformation) {
+                $this->set = call_user_func($this->transforms[$transformation], $this->set);
             }
         }
         if(!empty($this->activeTransformations) && !empty($this->insert_records)) {
             foreach ($this->activeTransformations as $transformation) {
                 foreach ($this->insert_records as $idx => $record) {
-                    $this->insert_records[$idx] = call_user_func($this->activeTransformations[$transformation], $record);
+                    $this->insert_records[$idx] = call_user_func($this->transforms[$transformation], $record);
                 }
             }
         }
@@ -152,11 +152,6 @@ abstract class Blueprint
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->count();
-        if($result && !empty($this->activeTransformations)) {
-            foreach ($this->activeTransformations as $transform) {
-                $result = call_user_func($transform, $result);
-            }
-        }
         $this->reset();
         return $result;
     }
