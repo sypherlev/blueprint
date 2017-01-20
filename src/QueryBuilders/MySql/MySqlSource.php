@@ -12,7 +12,6 @@ use SypherLev\Blueprint\QueryBuilders\QueryInterface;
 
 class MySqlSource implements SourceInterface
 {
-    private $config;
     private $pdo;
     /* @var \SypherLev\Blueprint\QueryBuilders\MySql\MySqlQuery */
     private $currentquery;
@@ -197,16 +196,16 @@ class MySqlSource implements SourceInterface
     }
 
     // returns the current database name
-    public function getSchemaName()
+    public function getDatabaseName()
     {
-        return $this->config->database;
+        return $this->pdo->query('select database()')->fetchColumn();
     }
 
     // get a list of columns from a table in the current database
     public function getTableColumns($tableName)
     {
         $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :database AND TABLE_NAME = :tableName;";
-        return $this->raw($sql, [':database' => $this->config->database, ':tableName' => $tableName], 'fetchAll');
+        return $this->raw($sql, [':database' => $this->getDatabaseName(), ':tableName' => $tableName], 'fetchAll');
     }
 
     // Wrappers for some useful PDO functions
@@ -266,12 +265,6 @@ class MySqlSource implements SourceInterface
     public function getRecordedOutput()
     {
         return $this->recording_output;
-    }
-
-    // clone the current Query object for analysis
-    public function cloneQuery()
-    {
-        return clone $this->currentquery;
     }
 
     // PRIVATE FUNCTIONS
