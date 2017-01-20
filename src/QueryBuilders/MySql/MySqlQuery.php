@@ -167,10 +167,8 @@ class MySqlQuery implements QueryInterface
 
     public function setTable($tablename)
     {
-        if (!empty($this->tablewhitelist)) {
-            if (!in_array($tablename, $this->tablewhitelist)) {
-                throw (new \Exception('Primary table name missing from whitelist'));
-            }
+        if(!$this->validateTableName($tablename)) {
+            throw (new \Exception('Primary table name missing from whitelist'));
         }
         $this->table = $tablename;
     }
@@ -696,9 +694,8 @@ class MySqlQuery implements QueryInterface
     private function newInsertEntry(Array $record)
     {
         foreach ($record as $column => $param) {
-            if (!$this->validateColumnName($column)) {
-                throw (new \Exception('Column in INSERT array not found in white list'));
-            }
+            // insert record column validation is handled by $this->setColumns()
+            // no need to add it here
             $record[$column] = $this->newBindEntry($param, ':ins');
         }
         $this->records[] = $record;
