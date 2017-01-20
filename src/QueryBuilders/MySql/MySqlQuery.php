@@ -365,6 +365,9 @@ class MySqlQuery implements QueryInterface
         }
         if (is_array($columnName_or_columnArray)) {
             // then this is an array in the form [$tableName => $columnName]
+            if($this->hasNumericKeys($columnName_or_columnArray)) {
+                throw (new \Exception("Invalid numeric column array in $function() clause; array must be in the form [tableName => columnName]"));
+            }
             foreach ($columnName_or_columnArray as $tableName => $columnName) {
                 $this->newAggregateEntry($function, $columnName, $tableName, $alias);
                 break;
