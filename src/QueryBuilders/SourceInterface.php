@@ -30,10 +30,6 @@ interface SourceInterface
 
     public function reset();
 
-    public function getSchemaName();
-
-    public function getTableColumns($tableName);
-
     public function lastInsertId($name = null);
 
     public function beginTransaction();
@@ -47,13 +43,6 @@ interface SourceInterface
     public function stopRecording();
 
     public function getRecordedOutput();
-
-    /**
-     * Copies and returns the current query - useful for storing/rerunning failed queries
-     *
-     * @return $query
-     */
-    public function cloneQuery();
 
     /**
      * Sets the current query to a cloned copy from $this->cloneQuery
