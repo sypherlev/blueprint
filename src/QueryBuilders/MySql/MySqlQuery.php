@@ -57,7 +57,7 @@ class MySqlQuery implements QueryInterface
             case 'DELETE':
                 return $this->generateDELETEStatement();
             default:
-                return false;
+                return $this->generateSELECTStatement();
         }
     }
 
@@ -67,12 +67,13 @@ class MySqlQuery implements QueryInterface
         if (!empty($this->columns)) {
             $query .= $this->compileColumns();
             if (!empty($this->aggregates)) {
+                $query = rtrim($query, ' ');
                 $query .= ', ' . $this->compileAggregates();
             }
-        } else if (empty($this->columns && !empty($this->aggregates))) {
+        } else if (empty($this->columns) && !empty($this->aggregates)) {
             $query .= $this->compileAggregates();
         } else if ($this->count) {
-            $query .= 'COUNT(*) AS count ';
+            $query .= 'COUNT(*) AS `count` ';
         } else {
             $query .= '* ';
         }
