@@ -386,10 +386,16 @@ class MySqlQuery implements QueryInterface
         }
         if (!$this->hasNumericKeys($groupby)) {
             // then this is an array of tables => columns
-            foreach ($groupby as $table => $col) {
-                if (is_string($col)) {
-                    $this->newGroupEntry($table, $col);
-                } else {
+            foreach ($groupby as $table => $cols) {
+                if (is_string($cols)) {
+                    $this->newGroupEntry($table, $cols);
+                }
+                else if (is_array($cols)) {
+                    foreach ($cols as $col) {
+                        $this->newGroupEntry($table, $col);
+                    }
+                }
+                else {
                     throw (new \Exception('Invalid non-string column name in GROUP BY clause'));
                 }
             }
@@ -478,7 +484,10 @@ class MySqlQuery implements QueryInterface
             if ($aggentry->table == false) {
                 $aggentry->table = $this->table;
             }
-                $aggregatestring .= $aggentry->function . '(`' . $aggentry->table . '`.' . $aggentry->column . '`)';
+            if ($aggentry->alias === false || $aggentry->alias === '') {
+                $aggentry->alias = $aggentry->column;
+            }
+            $aggregatestring .= $aggentry->function . '(`' . $aggentry->table . '`.`' . $aggentry->column . '`)';
             if ($aggentry->alias !== false) {
                 $aggregatestring .= ' AS `' . $aggentry->alias . '`';
             }
