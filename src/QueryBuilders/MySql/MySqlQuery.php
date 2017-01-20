@@ -288,14 +288,14 @@ class MySqlQuery implements QueryInterface
         }
         $placeholder = 'sypherlev_blueprint_tablename_placeholder';
         foreach ($where as $key => $value) {
-            if (is_array($value) && strpos($key, ' IN') === false) {
+            if (is_array($value) && strpos(strtoupper($key), ' IN') === false) {
                 // then this is an array of table => [column => param, ...]
                 if ($this->hasNumericKeys($value) && strpos($key, ' IN') === false) {
                     throw (new \Exception('Bad where relations array: array must have string keys in the format column => param or table => [column => param]'));
                 }
                 $this->newWhereEntry($where, $innercondition, $outercondition);
                 break;
-            } else if (is_array($value) && strpos($key, ' IN') !== false) {
+            } else if (is_array($value) && strpos(strtoupper($key), ' IN') !== false) {
                 // then this is an IN or NOT IN array
                 $where = [$placeholder => $where];
                 $this->newWhereEntry($where, $innercondition, $outercondition);
@@ -672,7 +672,7 @@ class MySqlQuery implements QueryInterface
                 if (!$this->validateColumnName($column)) {
                     throw (new \Exception('Column in WHERE not found in white list'));
                 }
-                if (strpos($column, ' IN') !== false && is_array($param)) {
+                if (strpos(strtoupper($column), ' IN') !== false && is_array($param)) {
                     $paramstring = '(';
                     foreach ($param as $in) {
                         $paramstring .= $this->newBindEntry($in) . ', ';
