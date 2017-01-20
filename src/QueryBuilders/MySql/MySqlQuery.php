@@ -50,8 +50,6 @@ class MySqlQuery implements QueryInterface
             throw (new \Exception('Query compilation failure: missing table or type'));
         }
         switch ($this->type) {
-            case 'SELECT':
-                return $this->generateSELECTStatement();
             case 'UPDATE':
                 return $this->generateUPDATEStatement();
             case 'INSERT':
