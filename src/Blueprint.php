@@ -25,6 +25,8 @@ abstract class Blueprint
         $this->query = $query;
     }
 
+    // ELEMENT METHODS
+
     protected function addPattern($patternName, \Closure $pattern) {
         $pattern = call_user_func($pattern);
         if(!is_a($pattern, 'SypherLev\Blueprint\Elements\Pattern')) {
@@ -68,6 +70,8 @@ abstract class Blueprint
         $this->activeTransformations[] = $transformName;
         return $this;
     }
+
+    // QUERY BUILDER METHODS
 
     protected function select()
     {
