@@ -217,9 +217,36 @@ abstract class Blueprint
         return $this;
     }
 
-    private function loadElements() {
+    // UTILITY METHODS
+
+    protected function getCurrentSQL() {
+        $cloneQuery = clone $this->query;
+        $cloneQuery = $this->loadElements($cloneQuery);
+        return $cloneQuery->compile();
+    }
+
+    protected function getCurrentBindings() {
+        $cloneQuery = clone $this->query;
+        $cloneQuery = $this->loadElements($cloneQuery);
+        if(!empty($this->set)) {
+            $cloneQuery->setUpdates($this->set);
+        }
+        if(!empty($this->insert_records)) {
+            foreach ($this->insert_records as $record) {
+                $cloneQuery->addInsertRecord($record);
+            }
+        }
+        return $cloneQuery->getBindings();
+    }
+
+    // PRIVATE METHODS
+
+    private function loadElements($query = false) {
+        if(!$query) {
+            $query = $this->query;
+        }
         if($this->activePattern) {
-            $query = $this->patterns[$this->activePattern]->setQueryParams($this->query);
+            $query = $this->patterns[$this->activePattern]->setQueryParams($query);
             if(!empty($this->activeFilters)) {
                 foreach ($this->activeFilters as $filter) {
                     $query = $this->filters[$filter]->setQueryParams($query);
