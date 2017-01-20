@@ -9,7 +9,6 @@ class Filter
     private $wheres = [];
     private $order = [];
     private $limit = [];
-    private $group;
 
     public function where(Array $where, $innercondition = 'AND', $outercondition = 'AND') {
         $this->wheres[] = array(
@@ -21,6 +20,9 @@ class Filter
     }
 
     public function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false) {
+        if (!is_array($columnname_or_columnarray)) {
+            $columnname_or_columnarray = [$columnname_or_columnarray];
+        }
         $this->order = array(
             'columns' => $columnname_or_columnarray,
             'order' => $order,
@@ -45,10 +47,7 @@ class Filter
             $query->setLimit($this->limit['rows'], $this->limit['offset']);
         }
         foreach ($this->wheres as $where) {
-            $query->where($where['where'], $where['inner'], $where['outer']);
-        }
-        if(!empty($this->group)) {
-            $query->groupBy($this->group);
+            $query->setWhere($where['where'], $where['inner'], $where['outer']);
         }
         return $query;
     }
