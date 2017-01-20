@@ -193,13 +193,16 @@ abstract class Blueprint
         return $this;
     }
 
-    public function aggregate($function, $columnName_or_columnArray, $alias = false)
+    protected function aggregate($function, $columnName_or_columnArray, $alias = false)
     {
         $this->query->setAggregate(strtoupper($function), $columnName_or_columnArray, $alias);
         return $this;
     }
 
     protected function groupBy($columnname_or_columnarray) {
+        if (!is_array($columnname_or_columnarray)) {
+            $columnname_or_columnarray = [$columnname_or_columnarray];
+        }
         $this->query->setGroupBy($columnname_or_columnarray);
         return $this;
     }
