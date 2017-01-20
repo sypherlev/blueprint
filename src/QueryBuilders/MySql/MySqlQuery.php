@@ -431,7 +431,9 @@ class MySqlQuery implements QueryInterface
     {
         $bindings = [];
         foreach ($this->bindings as $type => $bindinglist) {
-            $bindings = array_merge($bindings, $bindinglist);
+            foreach ($bindinglist as $idx => $bind) {
+                $bindings[$idx] = $bind;
+            }
         }
         return $bindings;
     }
