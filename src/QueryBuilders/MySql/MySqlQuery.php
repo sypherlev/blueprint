@@ -112,14 +112,10 @@ class MySqlQuery implements QueryInterface
             throw new \Exception('No records added for INSERT: statement cannot be executed.');
         }
         if (!empty($this->columns)) {
-            $tablevalid = false;
             foreach ($this->records as $record) {
                 foreach ($record as $key => $set) {
                     $valid = false;
                     foreach ($this->columns as $column) {
-                        if ($column->table == $this->table) {
-                            $tablevalid = true;
-                        }
                         if ($column->table == $this->table && $column->column == $key) {
                             $valid = true;
                         }
@@ -128,9 +124,6 @@ class MySqlQuery implements QueryInterface
                         throw new \Exception(' PHP :: Pattern mismatch: Column ' . $key . ' in table ' . $this->table . ' failed validation in INSERT');
                     }
                 }
-            }
-            if (!$tablevalid) {
-                throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in INSERT');
             }
         }
         $query = $this->type . ' INTO ';
@@ -149,13 +142,9 @@ class MySqlQuery implements QueryInterface
             throw new \Exception('No SET added for UPDATE: statement cannot be executed.');
         }
         if (!empty($this->columns)) {
-            $tablevalid = false;
             foreach ($this->updates as $update) {
                 $valid = false;
                 foreach ($this->columns as $column) {
-                    if ($column->table == $this->table) {
-                        $tablevalid = true;
-                    }
                     if ($column->table == $this->table && $column->column == $update->column) {
                         $valid = true;
                     }
@@ -163,9 +152,6 @@ class MySqlQuery implements QueryInterface
                 if (!$valid) {
                     throw new \Exception(' PHP :: Pattern mismatch: Column ' . $update->column . ' in table ' . $this->table . ' failed validation in UPDATE');
                 }
-            }
-            if (!$tablevalid) {
-                throw new \Exception(' PHP :: Pattern mismatch: table ' . $this->table . ' failed validation in UPDATE');
             }
         }
         $query = $this->type . ' ';
