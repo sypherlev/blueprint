@@ -5,9 +5,9 @@ category: qb
 date: 2016-10-18 13:30:00
 ---
 
-These methods are used to set up the SQL commands in the builder and are designed to be chained together.
+These methods are available within Blueprint, and used to set up the SQL commands in the builder. All return $this.
 
-All return $this.
+**Important Note** Blueprint has some built-in safeguards to help protect against SQL injection, but it was built for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input, and read up on best practices to secure your data.
 
 ### select, update, insert, delete 
  
@@ -65,15 +65,15 @@ Adds a where sequence to the query. The $where array has two possible formats:
 * Setting the param to NULL will force the operand to IS.
 
 * Each key/value pair in the where sequence is placed inside brackets `WHERE (...)`, each separated by the $innercondition.
-* Multiple where sequences are appended to the one ahead of it using its $outercondition.
+* Each where sequence added after the first is appended to the query using the previous where sequence's $outercondition.
 * The $innercondition and $outercondition may only be either AND or OR.
 
 Example:
 
     $this->select()
         ->table('users')
-        ->where(['id IN' => [1,5,7,9,11], 'active' => 1)
-        ->where(['id' => 15], 'AND', 'OR')
+        ->where(['id IN' => [1,5,7,9,11], 'active' => 1, 'AND', 'OR')
+        ->where(['id' => 15])
         ->many();
 
 This set of commands produces the following:
@@ -140,6 +140,8 @@ Sets a join for the current query.
 $on must be in the following format, and multiple join column relations are allowed: 
 
     array('firsttablecolumn' => 'secondtablecolumn, ...)
+    
+Join relations only use the '=' operand.
     
 $type may be one of INNER, FULL, LEFT or RIGHT.
 

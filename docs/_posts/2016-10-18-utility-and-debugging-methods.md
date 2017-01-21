@@ -5,9 +5,9 @@ category: qb
 date: 2016-10-18 12:49:25
 ---
 
-These methods are used for debugging, testing, and other utility tasks.
+These methods are used for debugging, testing, and other utility tasks within Blueprint. Some require accessing the Source or Query objecs.
 
-### startRecording
+### $this->source->startRecording
  
 | Parameters   | none                     |
 | Returns      | none | 
@@ -18,7 +18,54 @@ Queries may be compiled normally without the recorder being active as long as it
 
 ---
 
-### stopRecording
+### getCurrentSql
+ 
+| Parameters   | none |
+| Returns      | string | 
+
+Returns the current raw SQL output of the Query.
+
+---
+
+### getCurrentBindings
+ 
+| Parameters   | none |
+| Returns      | Array | 
+
+Returns the current bindings which will be added to the prepared statement to be executed by the Source
+
+---
+
+### $this->query->addToColumnWhitelist
+ 
+| Parameters   | $column                     |
+| Returns      | none | 
+
+Adds a column or array of columns to the current whitelist. This whitelist is used on top of the Pattern whitelisting that happens with Patterns applied to INSERT or UPDATE queries.
+
+---
+
+### $this->query->addToTableWhitelist
+ 
+| Parameters   | $table                     |
+| Returns      | none | 
+
+Adds a table or array of tables to the current whitelist. This whitelist is used on top of the Pattern whitelisting that happens with Patterns applied to INSERT or UPDATE queries.
+
+---
+
+### $this->query->getSection
+ 
+| Parameters   | $sectionName                     |
+| Returns      | $section\false | 
+
+This method is a getter for any internal property of the Query. It should only be used for deeper analysis of the Query object during debugging, and never in live production code.
+
+Ref: [https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql/MySqlQuery.php](Github) for the property list and this function's code.
+
+---
+
+### $this->source->stopRecording
  
 | Parameters   | none                     |
 | Returns      | none | 
@@ -27,7 +74,7 @@ Stops the query recorder.
 
 ---
 
-### getRecordedOutput
+### $this->source->getRecordedOutput
  
 | Parameters   | none                     |
 | Returns      | Array | 
@@ -36,16 +83,16 @@ Returns an array of information containing the generated SQL, bindings, and erro
 
 ---
 
-### reset
+### $this->source->reset
  
 | Parameters   | none                     |
 | Returns      | none | 
 
-Resets the current query parameters, allowing a new query to start compiling.
+Clears the current Query object, if one has been set in the Source.
 
 ---
 
-### getSchemaName
+### $this->source->getDatabaseName (MySQL only)
  
 | Parameters   | none                     |
 | Returns      | string $schemaname | 
@@ -54,7 +101,7 @@ Returns the name of the current schema.
 
 ---
 
-### getTableColumns
+### $this->source->getTableColumns (MySQL only)
  
 | Parameters   | string $tablename      |
 | Returns      | Array      | 
@@ -63,26 +110,7 @@ Returns a list of columns in the table, if it exists.
 
 ---
 
-### retrieveQuery
- 
-| Parameters   | none                     |
-| Returns      | \stdClass | 
-
-Returns a plain PHP object which contains the current query string and bindings.
-
----
-
-### lastIdFrom
- 
-| Parameters   | $tablename                 |
-|              | $primaryKeyname = 'id'     |
-| Returns      | string\|boolean | 
-
-Returns the last primary key from a table, or false if the table is empty.
-
----
-
-### lastInsertId
+### $this->source->lastInsertId
  
 | Parameters   | string $name = null          |
 | Returns      | string | 
@@ -91,52 +119,34 @@ Alias for \PDO::lastInsertId.
 
 ---
 
-### startTransaction
+### $this->source->beginTransaction
  
 | Parameters   | none                     |
 | Returns      | none | 
 
-Starts a \PDO transaction
+Alias for \PDO::beginTransaction, with some additional tracking
 
 ---
 
-### startTransaction
+### $this->source->commit
  
 | Parameters   | none                     |
 | Returns      | none | 
 
-Starts a \PDO transaction
+Alias for \PDO::commit, with some additional tracking
 
 ---
 
-### commitTransaction
+### $this->source->rollBack
  
 | Parameters   | none                     |
 | Returns      | none | 
 
-Commits a \PDO transaction
+Alias for \PDO::rollBack, with some additional tracking
 
 ---
 
-### rollbackTransaction
- 
-| Parameters   | none                     |
-| Returns      | none | 
-
-Rolls back a \PDO transaction
-
----
-
-### cloneQuery
- 
-| Parameters   | none                     |
-| Returns      | QueryInterface | 
-
-Returns a clone of the current Query object inside the compiler. (Useful for storing/rerunning/debugging failed queries)
-
----
-
-### setQuery
+### $this->source->setQuery
  
 | Parameters   | QueryInterface $query    |
 | Returns      | none | 
@@ -145,11 +155,3 @@ Sets the current query to a $query
 
 ---
 
-### getCurrentSql
- 
-| Parameters   | none |
-| Returns      | string | 
-
-Returns the current raw SQL output of the query builder.
-
----
