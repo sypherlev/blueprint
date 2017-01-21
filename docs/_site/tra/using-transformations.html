@@ -93,9 +93,6 @@
             
                 <li class="nav-header">Transformations</li>
             
-            <li data-order=""><a href="/blueprint/tra/transformation-methods.html">Transformation Methods</a></li>
-        
-            
             <li data-order=""><a href="/blueprint/tra/using-transformations.html">Using Transformations</a></li>
         
     
@@ -112,7 +109,7 @@
     </h2>
 </div>
 
-<p>The third part of Blueprint is the <strong>Transformation</strong> - a function which is called after the query output, and modifies it in some way. <em>TO-DO: add code for handling transformations before query execution</em></p>
+<p>The third part of Blueprint is the <strong>Transformation</strong> - a function which is called before or after the query, and modifies its input/output in some way.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$this-&gt;addTransformation('convertTimes', function($record){
     if(isset($record-&gt;created)) {
@@ -123,9 +120,11 @@
 </code></pre>
 </div>
 
-<p>When applying a Transformation, Blueprint will pass the query output into the Transformation function. (If it receives an array, it will loop over the array and pass each element into the function.)</p>
+<p>When applying a Transformation, Blueprint will pass the input or output into the Transformation function. (If it receives an array, it will loop over the array and pass each element into the function.)</p>
 
 <p>Transformations are best used in the form above - working on a single record, assumed to be a plain PHP object, with a check to make sure that the field it’s operating on exists.</p>
+
+<p>When applied to an INSERT or UPDATE, the Transformation is performed on the input before the query is performed. When applied to a SELECT, the Transformation is applied to the query’s output.</p>
 
 
                     </div>

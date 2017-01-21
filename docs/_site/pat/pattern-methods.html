@@ -93,9 +93,6 @@
             
                 <li class="nav-header">Transformations</li>
             
-            <li data-order=""><a href="/blueprint/tra/transformation-methods.html">Transformation Methods</a></li>
-        
-            
             <li data-order=""><a href="/blueprint/tra/using-transformations.html">Using Transformations</a></li>
         
     
@@ -112,7 +109,39 @@
     </h2>
 </div>
 
+<p>Pattern methods store the query elements below, and can be applied to a Query when the Pattern is used.</p>
 
+<p>All methods below are analogues to those of the same name in the Blueprint class.</p>
+
+<ul>
+  <li>table</li>
+  <li>where</li>
+  <li>columns</li>
+  <li>join</li>
+  <li>groupBy</li>
+  <li>aggregate</li>
+</ul>
+
+<h3 id="setqueryparams">setQueryParams</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>QueryInterface $query</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>$query</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>This function causes the Pattern’s settings to be applied to the $query.</p>
+
+<p>This is normally only used in the main Blueprint class and can be ignored.</p>
+
+<hr />
 
 
                     </div>
