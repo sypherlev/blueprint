@@ -1,3 +1,5 @@
+[![PDS Skeleton](https://img.shields.io/badge/pds-skeleton-blue.svg?style=flat-square)](https://github.com/php-pds/skeleton)
+
 # Blueprint Query Compiler
 
 Blueprint is an extended query builder that allows you to define, reuse, and override chunks of query code at will.
