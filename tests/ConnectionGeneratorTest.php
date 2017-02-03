@@ -4,12 +4,12 @@ use \SypherLev\Blueprint\ConnectionGenerator;
 
 class ConnectionGeneratorTest extends \PHPUnit\Framework\TestCase
 {
-    public function testConnection() {
+    /*public function testConnection() {
         $connection = new ConnectionGenerator();
         // real settings used here during testing
         $connection->setConnectionParameters('mysql', 'localhost', 'database', 'user', 'password');
         $this->assertInstanceOf('\PDO', $connection->generateNewPDO());
-    }
+    }*/
 
     public function testValidationException() {
         $connection = new ConnectionGenerator();
