@@ -5,7 +5,7 @@ category: bp
 date: 2016-10-18 15:34:50
 ---
 
-Classes which interact with the database are normally called models; this is not true of Blueprint, as its core functionality is to define how to access and manipulate data, not define it. For the sake of having some kind of convention, I call them `SomethingData`.
+Classes which interact with the database are normally called models; this is not true of Blueprint, as its core functionality is to define how to access and manipulate the database. For the sake of having some kind of convention, I call them `SomethingData`.
 
 Each Data class's constructor should include whatever Patterns, Filters and Transformations you require (because it's convenient), but you can put them in their own methods and initialize them as needed if you like.
 
@@ -15,8 +15,8 @@ Blueprint object example:
     
     class UserData extends Blueprint
     {
-        public function __construct(SourceInterface $source) {
-            parent::__construct($source);
+        public function __construct(SourceInterface $source, QueryInterface $query) {
+            parent::__construct($source, $query);
      
             // add patterns
             $this->addPattern('summary', function() {
@@ -56,11 +56,11 @@ Blueprint object example:
         }
     }
     
-The constructor accepts a Source - this is the database object through which queries will be run. Then three sections are defined - Patterns, Filters, and Transformations. Each one is defined by the following syntax:
+Three sections are defined - Patterns, Filters, and Transformations. Each one is defined by the following syntax:
 
     $this->addPattern('patternname', function() {...});
     
-The second argument for addPattern or addFilter should be a closure that produces an object of the relevant type. The second argument for addTransformation should be a closure that returns the same record entity passed into the function.
+The second argument for addPattern or addFilter should be a closure that produces an object of the relevant type. The second argument for addTransformation should be a closure that returns the same record entity passed into the function. (If a Transformation is given an array, it will cycle through it and apply the function to each element in the array.)
 
 ### Sample Functions
 
@@ -125,7 +125,7 @@ In the insertUser function, invoking the 'summary' pattern means that Blueprint 
         'last_name' => '...'
     ]
     
-If any other array keys are present that don't match the list allowed by the Pattern for the primary table, an exception will be thrown. (This validation is designed to prevent SQL injection in the column names.)
+If any other array keys are present that don't match the list allowed by the Pattern for the primary table, an exception will be thrown. (This validation is designed to prevent SQL injection in the column and table names.)
 
 The same applies for the updateUser function. As long as a Pattern is invoked, Blueprint will validate the data first. It will not ensure that all fields are present; it only ensures that the given fields are whitelisted. This means that you may add a single Pattern that defines which fields are editable in a particular table, and use it for any number of queries that edit that table.
 
