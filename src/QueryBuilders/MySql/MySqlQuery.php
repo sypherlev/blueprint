@@ -354,7 +354,7 @@ class MySqlQuery implements QueryInterface
         $this->direction = $direction;
     }
 
-    public function setAggregate($function, $columnName_or_columnArray, $alias = false)
+    public function setAggregate($function, $columnName_or_columnArray)
     {
         $table = false;
         if (!empty($this->table)) {
@@ -364,17 +364,35 @@ class MySqlQuery implements QueryInterface
             throw (new \Exception('Disallowed aggregate function: aggregate must be one of ' . implode('|', $this->allowedaggregates)));
         }
         if (is_array($columnName_or_columnArray)) {
-            // then this is an array in the form [$tableName => $columnName]
             if($this->hasNumericKeys($columnName_or_columnArray)) {
-                throw (new \Exception("Invalid numeric column array in $function() clause; array must be in the form [tableName => columnName]"));
+                // then this is an array in the form [columns1, column2, ...]
+                foreach ($columnName_or_columnArray as $columnName) {
+                    $this->newAggregateEntry($function, $columnName, $table, false);
+                }
             }
-            foreach ($columnName_or_columnArray as $tableName => $columnName) {
-                $this->newAggregateEntry($function, $columnName, $tableName, $alias);
-                break;
+            else {
+                // then this is an array in the form [tableName => [column1, column2, ...]] OR [tablename => columnname]
+                foreach ($columnName_or_columnArray as $tableName => $columns) {
+                    if(is_array($columns)) {
+                        // [tablename => [column1, column2, ...]]
+                        foreach ($columns as $idx => $col) {
+                            if(!is_string($idx)) { // then aliases are in use
+                                $this->newAggregateEntry($function, $col, $tableName, $idx);
+                            }
+                            else {
+                                $this->newAggregateEntry($function, $col, $tableName, false);
+                            }
+                        }
+                    }
+                    else {
+                        // [tablename => columnname]
+                        $this->newAggregateEntry($function, $columns, $tableName, false);
+                    }
+                }
             }
         } else {
             if (is_string($columnName_or_columnArray)) {
-                $this->newAggregateEntry($function, $columnName_or_columnArray, $table, $alias);
+                $this->newAggregateEntry($function, $columnName_or_columnArray, $table, false);
             } else {
                 throw (new \Exception("Invalid non-string column name in $function() clause"));
             }

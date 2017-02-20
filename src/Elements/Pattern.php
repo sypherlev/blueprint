@@ -55,7 +55,7 @@ class Pattern
             $query->setJoin($join['firsttable'], $join['secondtable'], $join['on'], $join['type']);
         }
         foreach ($this->aggregates as $agg) {
-            $query->setAggregate(strtoupper($agg['function']), $agg['columns'], $agg['alias']);
+            $query->setAggregate(strtoupper($agg['function']), $agg['columns']);
         }
         $query->setColumns($this->columns);
         if(!is_null($this->group)) {

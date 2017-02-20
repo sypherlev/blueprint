@@ -195,7 +195,7 @@ abstract class Blueprint
 
     protected function aggregate($function, $columnName_or_columnArray, $alias = false)
     {
-        $this->query->setAggregate(strtoupper($function), $columnName_or_columnArray, $alias);
+        $this->query->setAggregate(strtoupper($function), $columnName_or_columnArray);
         return $this;
     }
 
