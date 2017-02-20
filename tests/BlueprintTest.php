@@ -85,7 +85,7 @@ class BlueprintTest extends TestCase
     }
 
     public function testSelectSql() {
-        $sql = 'SELECT `mockTable`.*, `joinTable`.`firstcolumn` AS `alias1`, `joinTable`.`secondcolumn` AS `alias2`, SUM(`mockTable`.`col2`) AS `alias` FROM `mockTable` LEFT JOIN `joinTable` ON `mockTable`.`id` = `joinTable`.`join_id` WHERE (`mockTable`.`id` > :wh0) GROUP BY `mockTable`.`col1` ORDER BY `mockTable`.`id` DESC LIMIT 0, 5 ';
+        $sql = 'SELECT `mockTable`.*, `joinTable`.`firstcolumn` AS `alias1`, `joinTable`.`secondcolumn` AS `alias2`, SUM(`mockTable`.`col2`) AS `col2` FROM `mockTable` LEFT JOIN `joinTable` ON `mockTable`.`id` = `joinTable`.`join_id` WHERE (`mockTable`.`id` > :wh0) GROUP BY `mockTable`.`col1` ORDER BY `mockTable`.`id` DESC LIMIT 0, 5 ';
 
         $PDOMock = new PDOMock();
 

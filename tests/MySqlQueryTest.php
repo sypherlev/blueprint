@@ -236,28 +236,64 @@ class MySqlQueryTest extends \PHPUnit\Framework\TestCase
         $this->fail('MySqlQuery->setAggregate() with invalid function name did not trigger Exception');
     }
 
-    public function testAggregateInvalidColumnArray() {
-        $mysqlQuery = new MySqlQuery();
-
-        try {
-            $mysqlQuery->setAggregate('SUM', ['columnName'], 'alias');
-        }
-        catch (\Exception $e) {
-            return;
-        }
-        $this->fail('MySqlQuery->setAggregate() with invalid column array did not trigger Exception');
-    }
-
     public function testAggregateNumericColumn() {
         $mysqlQuery = new MySqlQuery();
 
         try {
-            $mysqlQuery->setAggregate('SUM', 123, 'alias');
+            $mysqlQuery->setAggregate('SUM', 123);
         }
         catch (\Exception $e) {
             return;
         }
         $this->fail('MySqlQuery->setAggregate() with numeric column did not trigger Exception');
+    }
+
+    public function testAggregateBasicColumn() {
+        $mysqlQuery = new MySqlQuery();
+
+        $mysqlQuery->setTable('table');
+        $mysqlQuery->setType('SELECT');
+        $mysqlQuery->setAggregate('SUM', ['column1', 'column2']);
+
+        $sql = 'SELECT SUM(`table`.`column1`) AS `column1`, SUM(`table`.`column2`) AS `column2` FROM `table` ';
+
+        $this->assertEquals($sql, $mysqlQuery->compile());
+    }
+
+    public function testAggregateBasicColumnAlias() {
+        $mysqlQuery = new MySqlQuery();
+
+        $mysqlQuery->setTable('table');
+        $mysqlQuery->setType('SELECT');
+        $mysqlQuery->setAggregate('SUM', ['alias1' => 'column1', 'alias2' => 'column2']);
+
+        $sql = 'SELECT SUM(`table`.`column1`) AS `alias1`, SUM(`table`.`column2`) AS `alias2` FROM `table` ';
+
+        $this->assertEquals($sql, $mysqlQuery->compile());
+    }
+
+    public function testAggregateComplexColumnWithAlias() {
+        $mysqlQuery = new MySqlQuery();
+
+        $mysqlQuery->setTable('table');
+        $mysqlQuery->setType('SELECT');
+        $mysqlQuery->setAggregate('SUM', ['table' => ['alias1' => 'column1']]);
+
+        $sql = 'SELECT SUM(`table`.`column1`) AS `alias1` FROM `table` ';
+
+        $this->assertEquals($sql, $mysqlQuery->compile());
+    }
+
+    public function testAggregateComplexColumn() {
+        $mysqlQuery = new MySqlQuery();
+
+        $mysqlQuery->setTable('table');
+        $mysqlQuery->setType('SELECT');
+        $mysqlQuery->setAggregate('SUM', ['table' => ['column1']]);
+
+        $sql = 'SELECT SUM(`table`.`column1`) AS `column1` FROM `table` ';
+
+        $this->assertEquals($sql, $mysqlQuery->compile());
     }
 
     public function testWhiteListAdditions() {
@@ -377,7 +413,7 @@ class MySqlQueryTest extends \PHPUnit\Framework\TestCase
         try {
             $mysqlQuery = new MySqlQuery();
             $mysqlQuery->addToTableWhitelist(['mockTable']);
-            $mysqlQuery->setAggregate('SUM', ['fake' => 'columnName']);
+            $mysqlQuery->setAggregate('SUM', ['fake' => ['columnName']]);
         }
         catch (\Exception $e) {
             return;

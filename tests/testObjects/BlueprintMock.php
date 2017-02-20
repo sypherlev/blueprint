@@ -95,7 +95,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
     public function getOnlyAggregates() {
         $this->select()
             ->table('mockTable')
-            ->aggregate('sum', ['mockTable' => 'firstcolumn'])
+            ->aggregate('sum', ['mockTable' => ['firstcolumn']])
             ->groupBy(['mockTable' => ['id']]);
         return $this->getCurrentSQL();
     }
@@ -164,14 +164,14 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
 
     public function testInsertQuery($record)
     {
-        $this->source->startRecording();
+        $this->record();
         $this->insert()
             ->withPattern('insert')
             ->add($record)
             ->withTransformation('createdStringToTimestamp')
             ->execute();
-        $this->source->stopRecording();
-        return $this->source->getRecordedOutput();
+        $this->stop();
+        return $this->output();
     }
 
     public function testUpdateQuery($id, $record)
