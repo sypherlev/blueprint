@@ -7,7 +7,7 @@ date: 2016-10-18 13:30:00
 
 These methods are available within Blueprint, and used to set up the SQL commands in the builder. All return $this.
 
-**Important Note** Blueprint has some built-in safeguards to help protect against SQL injection, but it was built for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input, and read up on best practices to secure your data.
+**Important Note:** Blueprint has some built-in safeguards to help protect against SQL injection, but it was created for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input, and read up on best practices to secure your data.
 
 ### select, update, insert, delete 
  
@@ -21,7 +21,7 @@ Sets the current query type to SELECT, UPDATE, INSERT, or DELETE
  
 | Parameters   | string $tablename    |  
 
-Sets the current table name.
+Sets the current primary table name.
 
 **WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.** Doing so may leave your code vulnerable to SQL injection.
 
@@ -41,7 +41,7 @@ Sets the columns to attach to the current query. This can accept five different 
     
 If used with update() or insert(), the column names in add() or set() will be validated against this configuration.
 
-`*` may be substituted in the form `array($tablename => array('*')`, but this will trigger a validation error when used with update() or insert().
+`*` may be substituted in the form `array($tablename => array('*')`, but this will trigger a validation error when used with update() or insert(). It's recommended that you only use `*` on the primary table.
 
 **WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.** Doing so may leave your code vulnerable to SQL injection.
 

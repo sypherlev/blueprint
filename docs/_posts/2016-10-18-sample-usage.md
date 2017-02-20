@@ -26,7 +26,7 @@ Blueprint object example:
                     ->columns([
                         'users' => ['id', 'username', 'first_name', 'last_name'],
                         'users_extended' => ['profile_pic'],
-                        'businesses' => ['city', 'province']
+                        'businesses' => ['name', 'state']
                     ]);
             });
      
@@ -35,9 +35,9 @@ Blueprint object example:
                     ->join('users', 'users_extended', ['id' => 'user_id'], 'LEFT')
                     ->join('users', 'businesses', ['id' => 'user_id'], 'LEFT')
                     ->columns([
-                        'users' => ['id', 'username', 'first_name', 'last_name'],
-                        'users_extended' => ['*'],
-                        'businesses' => ['*']
+                        'users' => ['*'],
+                        'users_extended' => ['profile_pic', 'phone', 'twitter_handle'],
+                        'businesses' => ['name', 'address1', 'address2', 'state', 'zipcode']
                     ]);
             });
      
@@ -92,6 +92,7 @@ In the User object itself, here are some possible functions for retrieving data:
             ->withTransformation('convertTimes')
             ->many();
     }
+    
 If you've ever used a query builder, the methods above should look familiar. When the termination methods are called (`one()`, `many()`, `execute()`, `count()`), any chosen Pattern and Filter is added to the query.
 
 Transformations are applied to records returned from any SELECT(), and any passed into INSERT() and UPDATE(). You may find it tricky to apply the same Transformation both ways.
