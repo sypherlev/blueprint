@@ -239,6 +239,29 @@ abstract class Blueprint
         return $cloneQuery->getBindings();
     }
 
+    /**
+     * Start recording queries, bindings and error output as they are executed
+     */
+    protected function record() {
+        $this->source->startRecording();
+    }
+
+    /**
+     *  Stop recording queries, bindings and error output as they are executed
+     */
+    protected function stop() {
+        $this->source->stopRecording();
+    }
+
+    /**
+     * Returns an array of SQL queries, their associated bindings, and the result of the query execution
+     *
+     * @return array $output
+     */
+    protected function output() {
+        return $this->source->getRecordedOutput();
+    }
+
     // PRIVATE METHODS
 
     private function loadElements($query = false) {
