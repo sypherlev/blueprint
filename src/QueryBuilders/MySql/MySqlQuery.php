@@ -371,12 +371,12 @@ class MySqlQuery implements QueryInterface
                 }
             }
             else {
-                // then this is an array in the form [tableName => [column1, column2, ...]] OR [tablename => columnname]
+                // then this is an array in the form [tableName => [column1, column2, ...]] OR [alias => columnname]
                 foreach ($columnName_or_columnArray as $tableName => $columns) {
                     if(is_array($columns)) {
                         // [tablename => [column1, column2, ...]]
                         foreach ($columns as $idx => $col) {
-                            if(!is_string($idx)) { // then aliases are in use
+                            if(is_string($idx)) { // then aliases are in use
                                 $this->newAggregateEntry($function, $col, $tableName, $idx);
                             }
                             else {
@@ -385,8 +385,8 @@ class MySqlQuery implements QueryInterface
                         }
                     }
                     else {
-                        // [tablename => columnname]
-                        $this->newAggregateEntry($function, $columns, $tableName, false);
+                        // [alias => columnname]
+                        $this->newAggregateEntry($function, $columns, $table, $tableName);
                     }
                 }
             }
