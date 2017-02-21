@@ -7,7 +7,7 @@ date: 2016-10-18 13:30:00
 
 These methods are available within Blueprint, and used to set up the SQL commands in the builder. All return $this.
 
-**Important Note:** Blueprint has some built-in safeguards to help protect against SQL injection, but it was created for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input, and read up on best practices to secure your data.
+**Important Note:** Blueprint was created for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input. If you need to pass user input into these functions, please use the `whitelistTable` and `whitelistColumn` functions (see Utility and Debugging Methods).
 
 ### select, update, insert, delete 
  
@@ -79,6 +79,8 @@ Example:
 This set of commands produces the following:
 
     SELECT * FROM `users` WHERE(`users`.`id` IN (1,5,7,9,11) AND `users`.`active` = 1) OR WHERE (`users`.`id` = 15)
+    
+**WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.** Doing so may leave your code vulnerable to SQL injection.
 
 ---
 

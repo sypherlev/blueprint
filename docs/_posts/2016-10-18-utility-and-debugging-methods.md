@@ -5,18 +5,7 @@ category: qb
 date: 2016-10-18 12:49:25
 ---
 
-These methods are used for debugging, testing, and other utility tasks within Blueprint. Some require accessing the Source or Query objecs.
-
-### $this->source->startRecording
- 
-| Parameters   | none                     |
-| Returns      | none | 
-
-Starts the query recorder. SQL, bindings, and error output is saved for each query.
- 
-Queries may be compiled normally without the recorder being active as long as it is started before the termination method call.
-
----
+These methods are used for debugging, testing, and other utility tasks within Blueprint. Some require accessing the Source or Query objects.
 
 ### getCurrentSql
  
@@ -36,16 +25,16 @@ Returns the current bindings which will be added to the prepared statement to be
 
 ---
 
-### $this->query->addToColumnWhitelist
+### $this->whitelistColumn
  
-| Parameters   | $column                     |
+| Parameters   | $column (string or array)                    |
 | Returns      | none | 
 
 Adds a column or array of columns to the current whitelist. This whitelist is used on top of the Pattern whitelisting that happens with Patterns applied to INSERT or UPDATE queries.
 
 ---
 
-### $this->query->addToTableWhitelist
+### $this->whitelistTable
  
 | Parameters   | $table                     |
 | Returns      | none | 
@@ -65,7 +54,16 @@ Ref: [https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql
 
 ---
 
-### $this->source->stopRecording
+### $this->record
+ 
+| Parameters   | none                     |
+| Returns      | none | 
+
+Starts the query recorder.
+
+---
+
+### $this->stop
  
 | Parameters   | none                     |
 | Returns      | none | 
@@ -74,7 +72,7 @@ Stops the query recorder.
 
 ---
 
-### $this->source->getRecordedOutput
+### $this->output
  
 | Parameters   | none                     |
 | Returns      | Array | 

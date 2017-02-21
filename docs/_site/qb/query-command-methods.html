@@ -111,7 +111,7 @@
 
 <p>These methods are available within Blueprint, and used to set up the SQL commands in the builder. All return $this.</p>
 
-<p><strong>Important Note</strong> Blueprint has some built-in safeguards to help protect against SQL injection, but it was built for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input, and read up on best practices to secure your data.</p>
+<p><strong>Important Note:</strong> Blueprint was created for developers with a strong knowledge of SQL and it will not stop you from writing vulnerable code. Please note the methods below which should never accept unvalidated user input. If you need to pass user input into these functions, please use the <code class="highlighter-rouge">whitelistTable</code> and <code class="highlighter-rouge">whitelistColumn</code> functions (see Utility and Debugging Methods).</p>
 
 <h3 id="select-update-insert-delete">select, update, insert, delete</h3>
 
@@ -139,7 +139,7 @@
   </tbody>
 </table>
 
-<p>Sets the current table name.</p>
+<p>Sets the current primary table name.</p>
 
 <p><strong>WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.</strong> Doing so may leave your code vulnerable to SQL injection.</p>
 
@@ -168,7 +168,7 @@ array($tableone =&gt; array($aliasone =&gt; $columnone, $aliastwo =&gt; $columnt
 
 <p>If used with update() or insert(), the column names in add() or set() will be validated against this configuration.</p>
 
-<p><code class="highlighter-rouge">*</code> may be substituted in the form <code class="highlighter-rouge">array($tablename =&gt; array('*')</code>, but this will trigger a validation error when used with update() or insert().</p>
+<p><code class="highlighter-rouge">*</code> may be substituted in the form <code class="highlighter-rouge">array($tablename =&gt; array('*')</code>, but this will trigger a validation error when used with update() or insert(). It’s recommended that you only use <code class="highlighter-rouge">*</code> on the primary table.</p>
 
 <p><strong>WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.</strong> Doing so may leave your code vulnerable to SQL injection.</p>
 
@@ -228,6 +228,8 @@ array($tableone =&gt; array($column =&gt; $param, ...), $tabletwo =&gt; array($c
 <div class="highlighter-rouge"><pre class="highlight"><code>SELECT * FROM `users` WHERE(`users`.`id` IN (1,5,7,9,11) AND `users`.`active` = 1) OR WHERE (`users`.`id` = 15)
 </code></pre>
 </div>
+
+<p><strong>WARNING: NEVER PASS UNVALIDATED USER INPUT TO THIS FUNCTION.</strong> Doing so may leave your code vulnerable to SQL injection.</p>
 
 <hr />
 

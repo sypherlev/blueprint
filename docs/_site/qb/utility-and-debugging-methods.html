@@ -109,28 +109,7 @@
     </h2>
 </div>
 
-<p>These methods are used for debugging, testing, and other utility tasks within Blueprint. Some require accessing the Source or Query objecs.</p>
-
-<h3 id="this-source-startrecording">$this-&gt;source-&gt;startRecording</h3>
-
-<table>
-  <tbody>
-    <tr>
-      <td>Parameters</td>
-      <td>none</td>
-    </tr>
-    <tr>
-      <td>Returns</td>
-      <td>none</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Starts the query recorder. SQL, bindings, and error output is saved for each query.</p>
-
-<p>Queries may be compiled normally without the recorder being active as long as it is started before the termination method call.</p>
-
-<hr />
+<p>These methods are used for debugging, testing, and other utility tasks within Blueprint. Some require accessing the Source or Query objects.</p>
 
 <h3 id="getcurrentsql">getCurrentSql</h3>
 
@@ -170,13 +149,13 @@
 
 <hr />
 
-<h3 id="this-query-addtocolumnwhitelist">$this-&gt;query-&gt;addToColumnWhitelist</h3>
+<h3 id="this-whitelistcolumn">$this-&gt;whitelistColumn</h3>
 
 <table>
   <tbody>
     <tr>
       <td>Parameters</td>
-      <td>$column</td>
+      <td>$column (string or array)</td>
     </tr>
     <tr>
       <td>Returns</td>
@@ -189,7 +168,7 @@
 
 <hr />
 
-<h3 id="this-query-addtotablewhitelist">$this-&gt;query-&gt;addToTableWhitelist</h3>
+<h3 id="this-whitelisttable">$this-&gt;whitelistTable</h3>
 
 <table>
   <tbody>
@@ -229,7 +208,26 @@
 
 <hr />
 
-<h3 id="this-source-stoprecording">$this-&gt;source-&gt;stopRecording</h3>
+<h3 id="this-record">$this-&gt;record</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>none</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>none</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Starts the query recorder.</p>
+
+<hr />
+
+<h3 id="this-stop">$this-&gt;stop</h3>
 
 <table>
   <tbody>
@@ -248,7 +246,7 @@
 
 <hr />
 
-<h3 id="this-source-getrecordedoutput">$this-&gt;source-&gt;getRecordedOutput</h3>
+<h3 id="this-output">$this-&gt;output</h3>
 
 <table>
   <tbody>

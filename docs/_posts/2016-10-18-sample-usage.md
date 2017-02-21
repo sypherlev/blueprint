@@ -5,13 +5,15 @@ category: bp
 date: 2016-10-18 15:34:50
 ---
 
-Classes which interact with the database are normally called models; this is not true of Blueprint, as its core functionality is to define how to access and manipulate the database. For the sake of having some kind of convention, I call them `SomethingData`.
+Classes which interact with the database are normally called models because they model the data. This is not true of Blueprint, as its core functionality is to define how to access and manipulate the database, and it makes no value judgments about how that data should look. (This is a reflection of how I build applications to deal with large amounts of data; it becomes difficult to adapt the database to the code, and far less so to adapt the code to the database. YMMV.)
+
+For the sake of having some kind of convention, I call them `SomethingData`.
 
 Each Data class's constructor should include whatever Patterns, Filters and Transformations you require (because it's convenient), but you can put them in their own methods and initialize them as needed if you like.
 
 **Patterns, Filters and Transformations cannot be removed once added. They can only be overwritten with a new element of the same name.**
 
-Blueprint object example:
+Example of a Blueprint object constructor:
     
     class UserData extends Blueprint
     {
@@ -53,6 +55,15 @@ Blueprint object example:
                 }
                 return $record;
             });
+            
+            $this->addTransformation('convertTimesExtended', function(Array $records){
+                foreach ($records as $idx => $record) {
+                    if(isset($record->created)) {
+                        $records[$idx]->created = date('Y-m-d H:i:s', $record->created);
+                    }
+                }
+                return $records;
+            }, true);
         }
     }
     
@@ -60,7 +71,11 @@ Three sections are defined - Patterns, Filters, and Transformations. Each one is
 
     $this->addPattern('patternname', function() {...});
     
-The second argument for addPattern or addFilter should be a closure that produces an object of the relevant type. The second argument for addTransformation should be a closure that returns the same record entity passed into the function. (If a Transformation is given an array, it will cycle through it and apply the function to each element in the array.)
+The second argument for addPattern or addFilter should be a closure that produces an object of the relevant type. The second argument for addTransformation should be a closure that returns the same record entity passed into the function. 
+
+A Transformation's default behavior is to cycle through an array of records and apply the transformation closure to each one. In the event that you need to apply a Transformation to the whole array, set the closure to expect an array, and set the third argument of addTransformation to `true`.
+
+**Note:** It's possible to use Transformations to invoke other Patterns, and append additional information to a record or records returned from a query. This could easily turn into an N+1 problem and trash your database performance. There are no safeguards to stop you from doing it, so consider this a warning: *be very careful when making further database queries inside a Transformation closure, especially when the Transformation is applied to a single record at a time*.
 
 ### Sample Functions
 
@@ -93,7 +108,7 @@ In the User object itself, here are some possible functions for retrieving data:
             ->many();
     }
     
-If you've ever used a query builder, the methods above should look familiar. When the termination methods are called (`one()`, `many()`, `execute()`, `count()`), any chosen Pattern and Filter is added to the query.
+When the termination methods are called (`one()`, `many()`, `execute()`, `count()`), any chosen Pattern and Filter is added to the query.
 
 Transformations are applied to records returned from any SELECT(), and any passed into INSERT() and UPDATE(). You may find it tricky to apply the same Transformation both ways.
 
@@ -116,8 +131,10 @@ Here's some create and update functions:
             ->where(['id' => $id])
             ->execute();
     }
-    
-In the insertUser function, invoking the 'summary' pattern means that Blueprint will try to insert a record into the table 'users' using the array $user, where the only allowed fields are those listed for the table 'users' in the Pattern. Therefore the array may only consist of the following:
+   
+The Patterns in Blueprint double as a whitelist when used with insert and update queries. Invoking a Pattern on these queries will set the table to be updated/inserted into, and the columns parameter of the Pattern will be used to validate the update/insert arrays.   
+   
+For example: In the insertUser function, invoking the 'summary' pattern means that Blueprint will try to insert a record into the table 'users' using the array $user, where the only allowed fields are those listed for the table 'users' in the Pattern. Therefore the array may only consist of the following:
 
     [
         'id' => '...',
@@ -128,7 +145,7 @@ In the insertUser function, invoking the 'summary' pattern means that Blueprint 
     
 If any other array keys are present that don't match the list allowed by the Pattern for the primary table, an exception will be thrown. (This validation is designed to prevent SQL injection in the column and table names.)
 
-The same applies for the updateUser function. As long as a Pattern is invoked, Blueprint will validate the data first. It will not ensure that all fields are present; it only ensures that the given fields are whitelisted. This means that you may add a single Pattern that defines which fields are editable in a particular table, and use it for any number of queries that edit that table.
+The same applies for the updateUser function. As long as a Pattern is invoked, Blueprint will validate the data first. It will not ensure that all fields are present; it only ensures that the given fields are whitelisted. This means that you may add a single Pattern that defines which fields are editable in a particular table, and use it for any query that edits that table.
 
 You can specify different Patterns for what data may be edited, vs. what data may be inserted.
 
