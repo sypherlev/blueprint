@@ -2,6 +2,7 @@
 
 namespace SypherLev\Blueprint;
 
+use SypherLev\Blueprint\Elements\Pattern;
 use SypherLev\Blueprint\QueryBuilders\QueryInterface;
 use SypherLev\Blueprint\QueryBuilders\SourceInterface;
 
@@ -12,6 +13,7 @@ abstract class Blueprint
     private $patterns = [];
     private $filters = [];
     private $transforms = [];
+    private $arraytransforms = [];
 
     private $insert_records = [];
     private $set = [];
@@ -59,12 +61,17 @@ abstract class Blueprint
         return $this;
     }
 
-    protected function addTransformation($transformName, \Closure $transform) {
-        $this->transforms[$transformName] = $transform;
+    protected function addTransformation($transformName, \Closure $transform, $operateOnArray = false) {
+        if($operateOnArray) {
+            $this->arraytransforms[$transformName] = $transform;
+        }
+        else {
+            $this->transforms[$transformName] = $transform;
+        }
     }
 
     protected function withTransformation($transformName) {
-        if(!isset($this->transforms[$transformName])) {
+        if(!isset($this->transforms[$transformName]) && !isset($this->arraytransforms[$transformName])) {
             throw (new \Exception('Could not set transformation '.$transformName.': transformation not found'));
         }
         $this->activeTransformations[] = $transformName;
@@ -103,7 +110,13 @@ abstract class Blueprint
         $result = $this->source->one();
         if($result && !empty($this->activeTransformations)) {
             foreach ($this->activeTransformations as $transform) {
-                $result = call_user_func($this->transforms[$transform], $result);
+                if(isset($this->transforms[$transform])) {
+                    $result = call_user_func($this->transforms[$transform], $result);
+                }
+                if(isset($this->arraytransforms[$transform])) {
+                    $temp = call_user_func($this->arraytransforms[$transform], [$result]);
+                    $result = $temp[0];
+                }
             }
         }
         $this->reset();
@@ -115,9 +128,14 @@ abstract class Blueprint
         $this->source->setQuery($query);
         $result = $this->source->many();
         if($result && !empty($this->activeTransformations)) {
-            foreach ($result as $idx => $r) {
-                foreach ($this->activeTransformations as $transform) {
-                    $result[$idx] = call_user_func($this->transforms[$transform], $r);
+            foreach ($this->activeTransformations as $transform) {
+                if(isset($this->transforms[$transform])) {
+                    foreach ($result as $idx => $r) {
+                        $result[$idx] = call_user_func($this->transforms[$transform], $r);
+                    }
+                }
+                if(isset($this->arraytransforms[$transform])) {
+                    $result = call_user_func($this->arraytransforms[$transform], $result);
                 }
             }
         }
@@ -129,13 +147,24 @@ abstract class Blueprint
         $query = $this->loadElements();
         if(!empty($this->activeTransformations) && !empty($this->set)) {
             foreach ($this->activeTransformations as $transformation) {
-                $this->set = call_user_func($this->transforms[$transformation], $this->set);
+                if(isset($this->transforms[$transformation])) {
+                    $this->set = call_user_func($this->transforms[$transformation], $this->set);
+                }
+                if(isset($this->arraytransforms[$transformation])) {
+                    $temp = $this->set = call_user_func($this->arraytransforms[$transformation], [$this->set]);
+                    $this->set = $temp[0];
+                }
             }
         }
         if(!empty($this->activeTransformations) && !empty($this->insert_records)) {
             foreach ($this->activeTransformations as $transformation) {
-                foreach ($this->insert_records as $idx => $record) {
-                    $this->insert_records[$idx] = call_user_func($this->transforms[$transformation], $record);
+                if(isset($this->transforms[$transformation])) {
+                    foreach ($this->insert_records as $idx => $record) {
+                        $this->insert_records[$idx] = call_user_func($this->transforms[$transformation], $record);
+                    }
+                }
+                if(isset($this->arraytransforms[$transformation])) {
+                    $this->insert_records = call_user_func($this->arraytransforms[$transformation], $this->insert_records);
                 }
             }
         }
@@ -260,6 +289,38 @@ abstract class Blueprint
      */
     protected function output() {
         return $this->source->getRecordedOutput();
+    }
+
+    /**
+     * Add either a table or an array of tables to the current whitelist
+     *
+     * @param string $table | array $table
+     */
+    protected function whitelistTable($table) {
+        if(is_array($table)) {
+            foreach ($table as $t) {
+                $this->query->addToTableWhitelist($t);
+            }
+        }
+        else {
+            $this->query->addToTableWhitelist($table);
+        }
+    }
+
+    /**
+     * Add either a column or an array of columns to the current whitelist
+     *
+     * @param string $column | array $column
+     */
+    protected function whitelistColumn($column) {
+        if(is_array($column)) {
+            foreach ($column as $c) {
+                $this->query->addToColumnWhitelist($c);
+            }
+        }
+        else {
+            $this->query->addToColumnWhitelist($column);
+        }
     }
 
     // PRIVATE METHODS

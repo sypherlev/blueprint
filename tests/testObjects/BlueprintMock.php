@@ -51,12 +51,14 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
             return $record;
         });
 
-        $this->addTransformation('createdStringToTimestamp', function ($record) {
-            if (isset($record['created'])) {
-                $record['created'] = strtotime($record['created']);
+        $this->addTransformation('createdStringToTimestamp', function (Array $records) {
+            foreach ($records as $idx => $record) {
+                if (isset($record['created'])) {
+                    $records[$idx]['created'] = strtotime($record['created']);
+                }
             }
-            return $record;
-        });
+            return $records;
+        }, true);
     }
 
     public function getMany()
