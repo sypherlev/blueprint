@@ -120,11 +120,35 @@
 </code></pre>
 </div>
 
-<p>When applying a Transformation, Blueprint will pass the input or output into the Transformation function. (If it receives an array, it will loop over the array and pass each element into the function.)</p>
+<p>When applying a Transformation, Blueprint will pass the input or output into the Transformation function. (If it receives an array, it will loop over the array and pass each element into the function.) When applied to an INSERT or UPDATE, the Transformation is performed on the input before the query is performed. When applied to a SELECT, the Transformation is applied to the query’s output.</p>
 
-<p>Transformations are best used in the form above - working on a single record, assumed to be a plain PHP object, with a check to make sure that the field it’s operating on exists.</p>
+<p>Transformations are best used in the form above - working on a single record, assumed to be a plain PHP object, with a check to make sure that the field it’s operating on exists. But it’s also possible to apply a Transformation to a whole array of records going in or out of the database.</p>
 
-<p>When applied to an INSERT or UPDATE, the Transformation is performed on the input before the query is performed. When applied to a SELECT, the Transformation is applied to the query’s output.</p>
+<p>Set the closure to expect an array, and set the last argument of <code class="highlighter-rouge">addTransformation</code> to true.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$this-&gt;addTransformation('uppercaseName', function(Array $records){
+    foreach ($records as $idx =&gt; $record) {
+        if(isset($record-&gt;name)) {
+            $record[$idx]-&gt;name = strtoupper($record-&gt;name);
+        }   
+    }
+    return $records;
+}, true);
+</code></pre>
+</div>
+
+<p>Transformations are also used to append to a dataset or run queries one after another.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$this-&gt;addTransformation('getComments', function($record) use ($this) {
+    if(isset($record-&gt;id)) {
+        $record-&gt;comments = $this-&gt;getComments($record-&gt;id);
+    }
+    return $record;
+});
+</code></pre>
+</div>
+
+<p><strong>Be careful with this.</strong> It’s very possible to trash your database if you apply this kind of Transformation to a large dataset, because it runs in a loop.</p>
 
 
                     </div>
