@@ -351,5 +351,7 @@ abstract class Blueprint
         $this->activeTransformations = [];
         $this->insert_records = [];
         $this->set = [];
+        $queryclass = get_class($this->query);
+        $this->query = new $queryclass();
     }
 }
