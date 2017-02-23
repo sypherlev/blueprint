@@ -4,12 +4,46 @@ namespace SypherLev\Blueprint\QueryBuilders;
 
 interface SourceInterface
 {
+    // TERMINATION METHODS
+    // these methods are used to end the query chain, clear the query, and return a result
+
+    /**
+     * Execute the current query and return a single result.
+     * Arbitrary SQL and binds can be passed in for debugging purposes.
+     * Returns the result as an object or boolean if nothing found/error occured.
+     *
+     * @param bool $sql
+     * @param bool $binds
+     * @return object|boolean
+     */
     public function one($sql = false, $binds = false);
 
+    /**
+     * Execute the current query and return an array of results.
+     * Arbitrary SQL and binds can be passed in for debugging purposes
+     *
+     * @param bool $sql
+     * @param bool $binds
+     * @return array
+     */
     public function many($sql = false, $binds = false);
 
+    /**
+     * Execute the current query and return a single integer count.
+     * Returns integer count or boolean if error occurred.
+     *
+     * @return integer|boolean
+     */
     public function count();
 
+    /**
+     * Execute the current query and return true or false.
+     * Arbitrary SQL and binds can be passed in for debugging purposes
+     *
+     * @param bool $sql
+     * @param bool $binds
+     * @return boolean
+     */
     public function execute($sql = false, $binds = false);
 
     /**
@@ -28,24 +62,58 @@ interface SourceInterface
      */
     public function raw($sql, $values, $fetch = '', $returntype = \PDO::FETCH_OBJ);
 
+    /**
+     * Reset the current query
+     */
     public function reset();
 
+    // UTILITY METHODS
+
+    /**
+     * Alias for PDO::lastInsertId
+     *
+     * @param null $name
+     * @return int
+     */
     public function lastInsertId($name = null);
 
+    /**
+     * Alias for PDO::beginTransaction with some additional tracking
+     */
     public function beginTransaction();
 
+    /**
+     * Alias for PDO::commit with some additional tracking
+     */
     public function commit();
 
+    /**
+     * Alias for PDO::rollBack with some additional tracking
+     */
     public function rollBack();
 
+    // TESTING METHODS
+    // these methods are used to check outputs and do query testing
+
+    /**
+     * Starts the query recorder
+     */
     public function startRecording();
 
+    /**
+     * Stops the query recorder
+     */
     public function stopRecording();
 
+    /**
+     * Gets an array of recorded queries consisting of the generated SQL, bindings, and PDO error output
+     *
+     * @return array
+     */
     public function getRecordedOutput();
 
     /**
-     * Sets the current query to a cloned copy from $this->cloneQuery
+     * Sets the current query object
      *
      * @param $query
      */
