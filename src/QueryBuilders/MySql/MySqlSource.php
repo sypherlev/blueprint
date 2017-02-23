@@ -24,9 +24,6 @@ class MySqlSource implements SourceInterface
         $this->pdo = $pdo;
     }
 
-    // TERMINATION METHODS
-    // these methods are used to end the query chain, clear the query, and return a result
-
     public function one($sql = false, $binds = false)
     {
         if (!$sql) {
