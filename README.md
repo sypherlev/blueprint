@@ -4,4 +4,8 @@
 
 Blueprint is an extended query builder that allows you to define, reuse, and override chunks of query code at will.
 
+### Install via Composer
+
+`composer require sypherlev/blueprint`
+
 Documentation is available at [https://sypherlev.github.io/blueprint/](https://sypherlev.github.io/blueprint/)
