@@ -14,7 +14,6 @@ These methods trigger a response from the database by compiling the query and se
 | Returns      | Object, or false    | 
 
 Returns the first matching result from the database as a plain PHP object. 
-It can accept arbitrary SQL and bindings for development purposes.
 
 ---
 
@@ -25,7 +24,6 @@ It can accept arbitrary SQL and bindings for development purposes.
 | Returns      | Array, or false     | 
 
 As one(), but instead returns an array of all matching PHP objects. 
-It can accept arbitrary SQL and bindings for development purposes.
 
 ---
 
@@ -45,7 +43,6 @@ Returns a COUNT(*) of the current query.
 | Returns      | boolean    | 
 
 Executes a query on the database and returns the result. Normally used only with UPDATE/INSERT/DELETE, and so only returns true or false. It can be used with SELECT, but it's not recommended because it may produce strange behaviour.
-It can accept arbitrary SQL and bindings for development purposes.
 
 ---
 
