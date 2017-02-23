@@ -149,7 +149,7 @@
 
 <hr />
 
-<h3 id="this-whitelistcolumn">$this-&gt;whitelistColumn</h3>
+<h3 id="whitelistcolumn">whitelistColumn</h3>
 
 <table>
   <tbody>
@@ -168,7 +168,7 @@
 
 <hr />
 
-<h3 id="this-whitelisttable">$this-&gt;whitelistTable</h3>
+<h3 id="whitelisttable">whitelistTable</h3>
 
 <table>
   <tbody>
@@ -187,28 +187,7 @@
 
 <hr />
 
-<h3 id="this-query-getsection">$this-&gt;query-&gt;getSection</h3>
-
-<table>
-  <tbody>
-    <tr>
-      <td>Parameters</td>
-      <td>$sectionName</td>
-    </tr>
-    <tr>
-      <td>Returns</td>
-      <td>$section\false</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>This method is a getter for any internal property of the Query. It should only be used for deeper analysis of the Query object during debugging, and never in live production code.</p>
-
-<p>Ref: <a href="Github">https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql/MySqlQuery.php</a> for the property list and this function’s code.</p>
-
-<hr />
-
-<h3 id="this-record">$this-&gt;record</h3>
+<h3 id="record">record</h3>
 
 <table>
   <tbody>
@@ -227,7 +206,7 @@
 
 <hr />
 
-<h3 id="this-stop">$this-&gt;stop</h3>
+<h3 id="stop">stop</h3>
 
 <table>
   <tbody>
@@ -246,7 +225,7 @@
 
 <hr />
 
-<h3 id="this-output">$this-&gt;output</h3>
+<h3 id="output">output</h3>
 
 <table>
   <tbody>
@@ -264,6 +243,10 @@
 <p>Returns an array of information containing the generated SQL, bindings, and error output for each recorded query.</p>
 
 <hr />
+
+<h2 id="additional-utility-methods">Additional Utility Methods</h2>
+
+<p>The methods below belong to the source or query objects within Blueprint, and are included here for further debugging purposes if needed.</p>
 
 <h3 id="this-source-reset">$this-&gt;source-&gt;reset</h3>
 
@@ -417,6 +400,26 @@
 
 <hr />
 
+<h3 id="this-query-getsection">$this-&gt;query-&gt;getSection</h3>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Parameters</td>
+      <td>$sectionName</td>
+    </tr>
+    <tr>
+      <td>Returns</td>
+      <td>$section\false</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>This method is a getter for any internal property of the Query. It should only be used for deeper analysis of the Query object during debugging, and never in live production code.</p>
+
+<p>Ref: <a href="Github">https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql/MySqlQuery.php</a> for the property list and this function’s code.</p>
+
+<hr />
 
 
                     </div>

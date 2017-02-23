@@ -25,7 +25,7 @@ Returns the current bindings which will be added to the prepared statement to be
 
 ---
 
-### $this->whitelistColumn
+### whitelistColumn
  
 | Parameters   | $column (string or array)                    |
 | Returns      | none | 
@@ -34,7 +34,7 @@ Adds a column or array of columns to the current whitelist. This whitelist is us
 
 ---
 
-### $this->whitelistTable
+### whitelistTable
  
 | Parameters   | $table                     |
 | Returns      | none | 
@@ -43,18 +43,7 @@ Adds a table or array of tables to the current whitelist. This whitelist is used
 
 ---
 
-### $this->query->getSection
- 
-| Parameters   | $sectionName                     |
-| Returns      | $section\false | 
-
-This method is a getter for any internal property of the Query. It should only be used for deeper analysis of the Query object during debugging, and never in live production code.
-
-Ref: [https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql/MySqlQuery.php](Github) for the property list and this function's code.
-
----
-
-### $this->record
+### record
  
 | Parameters   | none                     |
 | Returns      | none | 
@@ -63,7 +52,7 @@ Starts the query recorder.
 
 ---
 
-### $this->stop
+### stop
  
 | Parameters   | none                     |
 | Returns      | none | 
@@ -72,7 +61,7 @@ Stops the query recorder.
 
 ---
 
-### $this->output
+### output
  
 | Parameters   | none                     |
 | Returns      | Array | 
@@ -80,6 +69,10 @@ Stops the query recorder.
 Returns an array of information containing the generated SQL, bindings, and error output for each recorded query.
 
 ---
+
+## Additional Utility Methods
+
+The methods below belong to the source or query objects within Blueprint, and are included here for further debugging purposes if needed.
 
 ### $this->source->reset
  
@@ -153,3 +146,13 @@ Sets the current query to a $query
 
 ---
 
+### $this->query->getSection
+ 
+| Parameters   | $sectionName                     |
+| Returns      | $section\false | 
+
+This method is a getter for any internal property of the Query. It should only be used for deeper analysis of the Query object during debugging, and never in live production code.
+
+Ref: [https://github.com/sypherlev/blueprint/blob/master/src/QueryBuilders/MySql/MySqlQuery.php](Github) for the property list and this function's code.
+
+---
