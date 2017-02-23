@@ -4,13 +4,18 @@ namespace SypherLev\Blueprint\QueryBuilders;
 
 interface QueryInterface
 {
+
+    /**
+     * Attempts to compile the current query and returns it as a string
+     *
+     * @return string
+     */
     public function compile();
 
     /**
      * Set the primary table on the query
      *
      * @param string $tablename
-     * @return $this
      */
     public function setTable($tablename);
 
@@ -18,7 +23,6 @@ interface QueryInterface
      * Sets the current query type
      *
      * @param $type
-     * @return $this
      */
     public function setType($type);
 
@@ -31,7 +35,6 @@ interface QueryInterface
      *     array($alias => $column, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($aliasone => $columnone, $aliastwo => $columntwo,  ...), $tabletwo => array(...) ...)
-     * @return $this
      */
     public function setColumns(Array $columns);
 
@@ -39,7 +42,6 @@ interface QueryInterface
      * Used only with UPDATE
      *
      * @param array $updates - array('column' => $variable, ... )
-     * @return $this
      */
     public function setUpdates(Array $updates);
 
@@ -47,7 +49,6 @@ interface QueryInterface
      * Sets the current query to return COUNT(*)
      *
      * @param bool $count
-     * @return $this
      */
     public function setCount($count = false);
 
@@ -56,7 +57,6 @@ interface QueryInterface
      * Use this in a loop to add a batch of records
      *
      * @param array $record - array('column' => $variable, ... )
-     * @return $this
      */
     public function addInsertRecord(Array $record);
 
@@ -65,7 +65,6 @@ interface QueryInterface
      *
      * @param int $rows
      * @param int $offset
-     * @return $this
      */
     public function setLimit($rows, $offset = 0);
 
@@ -76,7 +75,6 @@ interface QueryInterface
      * @param $secondtable - tablename
      * @param array $on - must be in the format array('firsttablecolumn' => 'secondtablecolumn, ...)
      * @param string $type - inner|full|left|right
-     * @return $this
      */
     public function setJoin($first, $second, Array $on, $type = 'INNER');
 
@@ -94,7 +92,6 @@ interface QueryInterface
      *     array($tableone => array($column => $param, ...), $tabletwo => array($column => $param, ...), ...)
      * @param string $innercondition - AND|OR - used between clauses in the WHERE statement
      * @param string $outercondition - AND|OR - used to append this WHERE statement to the query
-     * @return $this
      */
     public function setWhere(Array $where, $innercondition = 'AND', $outercondition = 'AND');
 
@@ -107,7 +104,6 @@ interface QueryInterface
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      * @param $direction - must be one of 'ASC' or 'DESC'
      * @param $aliases - whether aliases are being used or not
-     * @return $this
      */
     public function setOrderBy(Array $orderby, $direction = 'ASC', $aliases = false);
 
@@ -121,7 +117,6 @@ interface QueryInterface
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($alias => $columnone, $alias => $columntwo,  ...), $tabletwo => array(...), ...)
-     * @return $this
      */
     public function setAggregate($function, $columnName_or_columnArray);
 
@@ -131,7 +126,6 @@ interface QueryInterface
      * @param $groupby - has two possible types:
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
-     * @return mixed
      */
     public function setGroupBy(Array $groupby);
 
@@ -140,7 +134,6 @@ interface QueryInterface
      * user input as the column names. Takes an array or a string
      *
      * @param array|string $whitelist
-     * @return $this
      */
     public function addToColumnWhitelist($column);
 
@@ -150,7 +143,6 @@ interface QueryInterface
      * Accepts an array or a string
      *
      * @param array|string $whitelist
-     * @return $this
      */
     public function addToTableWhitelist($table);
 
