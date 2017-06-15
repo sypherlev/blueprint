@@ -230,7 +230,9 @@ abstract class Blueprint
         }
         $this->reset();
         $this->source->setQuery($query);
-        return $this->source->execute();
+        $result = $this->source->execute();
+        $this->reset();
+        return $result;
     }
 
     protected function count() {
