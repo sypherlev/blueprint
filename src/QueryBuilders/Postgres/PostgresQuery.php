@@ -175,6 +175,7 @@ class PostgresQuery implements QueryInterface
 
     public function setType($type)
     {
+        $type = strtoupper($type);
         if (!in_array($type, $this->allowedtypes)) {
             throw (new \Exception('Disallowed query type: query must be one of '.implode('|', $this->allowedtypes)));
         }
@@ -270,6 +271,7 @@ class PostgresQuery implements QueryInterface
 
     public function setJoin($first, $second, Array $on, $type = 'INNER')
     {
+        $type = strtoupper($type);
         if (!in_array($type, $this->allowedjoins)) {
             throw (new \Exception('Disallowed JOIN type: joins must be one of '.implode('|', $this->allowedjoins)));
         }
@@ -315,6 +317,7 @@ class PostgresQuery implements QueryInterface
         if (!empty($this->table)) {
             $table = $this->table;
         }
+        $direction = strtoupper($direction);
         if (!in_array($direction, $this->allowedorders)) {
             throw (new \Exception('Disallowed ORDER BY type: order must be one of ' . implode('|', $this->allowedorders)));
         }
@@ -360,6 +363,7 @@ class PostgresQuery implements QueryInterface
         if (!empty($this->table)) {
             $table = $this->table;
         }
+        $function = strtoupper($function);
         if (!in_array($function, $this->allowedaggregates)) {
             throw (new \Exception('Disallowed aggregate function: aggregate must be one of ' . implode('|', $this->allowedaggregates)));
         }
