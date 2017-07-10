@@ -113,9 +113,30 @@ interface SourceInterface
     public function getRecordedOutput();
 
     /**
+     * Get a list of columns from a table in the current database
+     *
+     * @param $tableName
+     * @return array
+     */
+    public function getTableColumns($tableName);
+
+    /**
+     * Returns the primary key of a table in the current database
+     *
+     * @param $tableName
+     * @return string
+     */
+    public function getPrimaryKey($tableName);
+
+    /**
      * Sets the current query object
      *
      * @param $query
      */
     public function setQuery(QueryInterface $query);
+
+    /**
+     * Generate a new QueryInterface object appropriate for this source's driver
+     */
+    public function generateNewQuery();
 }

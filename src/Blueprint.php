@@ -454,6 +454,14 @@ abstract class Blueprint
         return $this->source->getRecordedOutput();
     }
 
+    protected function getTableColumns($tableName) {
+        return $this->source->getTableColumns($tableName);
+    }
+
+    protected function getPrimaryKey($tableName) {
+        return $this->source->getPrimaryKey($tableName);
+    }
+
     /**
      * Add either a table or an array of tables to the current whitelist
      *
