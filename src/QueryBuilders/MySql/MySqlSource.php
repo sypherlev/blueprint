@@ -205,7 +205,7 @@ class MySqlSource implements SourceInterface
         $columns = $this->raw($sql, [':database' => $this->getDatabaseName(), ':tableName' => $tableName], 'fetchAll');
         $return_array = [];
         foreach ($columns as $c) {
-            $return_array[] = $c->Field;
+            $return_array[] = $c->COLUMN_NAME;
         }
         return $return_array;
     }
@@ -215,7 +215,7 @@ class MySqlSource implements SourceInterface
         $sql = "SHOW KEYS FROM :tableName WHERE Key_name = 'PRIMARY'";
         $result = $this->raw($sql, [':tableName' => $tableName], 'fetchAll');
         if($result) {
-            return $result[0]->column_name;
+            return $result[0]->COLUMN_NAME;
         }
         return null;
     }

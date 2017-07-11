@@ -6,9 +6,12 @@
          verbose="true">
     <testsuites>
         <testsuite name="small">
-            <file>tests/BlueprintTest.php</file>
+            <file>tests/BlueprintMySqlTest.php</file>
+            <file>tests/BlueprintPostgresTest.php</file>
             <file>tests/MySqlQueryTest.php</file>
             <file>tests/MySqlSourceTest.php</file>
+            <file>tests/PostgresQueryTest.php</file>
+            <file>tests/PostgresSourceTest.php</file>
             <file>tests/ConnectionGeneratorTest.php</file>
         </testsuite>
     </testsuites>

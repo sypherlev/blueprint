@@ -204,15 +204,20 @@ class MySqlSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOSchemaFunctions() {
         $PDOMock = new PDOMock();
-        $mysqlSource = new MySqlSource($PDOMock->createSchemaPDO());
+        $mysqlSource = new MySqlSource($PDOMock->createMysqlSchemaPDO());
         $mysqlSource->beginTransaction();
 
         $this->assertEquals('mockDatabase', $mysqlSource->getDatabaseName());
 
-        $columnName = new \stdClass();
-        $columnName->COLUMN_NAME = 'mockColumn';
+        $this->assertEquals(['mockColumn'], $mysqlSource->getTableColumns('mockTable'));
+    }
 
-        $this->assertEquals([$columnName], $mysqlSource->getTableColumns('mockTable'));
+    public function testPrimaryKeyFunctions() {
+        $PDOMock = new PDOMock();
+        $mysqlSource = new MySqlSource($PDOMock->createMysqlPrimaryKeysPDO());
+        $mysqlSource->beginTransaction();
+
+        $this->assertEquals('id', $mysqlSource->getPrimaryKey('mockTable'));
     }
 
     public function testPDOUtilitiesFalse() {

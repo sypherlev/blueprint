@@ -4,10 +4,10 @@ use PHPUnit\Framework\TestCase;
 use SypherLev\Blueprint\QueryBuilders\MySql\MySqlSource;
 use SypherLev\Blueprint\QueryBuilders\MySql\MySqlQuery;
 
-include "testObjects/BlueprintMock.php";
-include "testObjects/PDOMock.php";
+include_once "testObjects/BlueprintMock.php";
+include_once "testObjects/PDOMock.php";
 
-class BlueprintTest extends TestCase
+class BlueprintMySqlTest extends TestCase
 {
     public function testSelectMany() {
 

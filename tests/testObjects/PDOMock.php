@@ -96,7 +96,7 @@ class PDOMock extends TestCase
         return $mockPDO;
     }
 
-    public function createSchemaPDO() {
+    public function createMysqlSchemaPDO() {
         $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
         $mockPDOStatement->expects($this->any())
             ->method('fetchColumn')
@@ -123,6 +123,96 @@ class PDOMock extends TestCase
 
         $mockPDO->expects($this->once())
             ->method('prepare')
+            ->will($this->returnValue($mockPDOStatement));
+
+        return $mockPDO;
+    }
+
+    public function createPostgresSchemaPDO() {
+        $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchColumn')
+            ->will($this->returnValue('mockDatabase'));
+
+        $columnName = new \stdClass();
+        $columnName->column_name = 'mockColumn';
+
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue([$columnName]));
+
+        $mockPDOStatement->expects($this->any())
+            ->method('execute')
+            ->will($this->returnValue(true));
+
+        $mockPDO = $this->getMockBuilder('\PDO')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockPDO->expects($this->any())
+            ->method('query')
+            ->will($this->returnValue($mockPDOStatement));
+
+        $mockPDO->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($mockPDOStatement));
+
+        return $mockPDO;
+    }
+
+    public function createMysqlPrimaryKeysPDO() {
+        $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
+
+        $columnName = new \stdClass();
+        $columnName->COLUMN_NAME = 'id';
+
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue([$columnName]));
+
+        $mockPDOStatement->expects($this->any())
+            ->method('execute')
+            ->will($this->returnValue(true));
+
+        $mockPDO = $this->getMockBuilder('\PDO')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockPDO->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($mockPDOStatement));
+
+        $mockPDO->expects($this->any())
+            ->method('query')
+            ->will($this->returnValue($mockPDOStatement));
+
+        return $mockPDO;
+    }
+
+    public function createPostgresPrimaryKeysPDO() {
+        $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
+
+        $columnName = new \stdClass();
+        $columnName->attname = 'id';
+
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue([$columnName]));
+
+        $mockPDOStatement->expects($this->any())
+            ->method('execute')
+            ->will($this->returnValue(true));
+
+        $mockPDO = $this->getMockBuilder('\PDO')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockPDO->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($mockPDOStatement));
+
+        $mockPDO->expects($this->any())
+            ->method('query')
             ->will($this->returnValue($mockPDOStatement));
 
         return $mockPDO;
