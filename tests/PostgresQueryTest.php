@@ -142,7 +142,7 @@ class PostgresQueryTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testInsertRecordWithoutColumnValidation() {
-        $sql = 'INSERT INTO "mockTable" ("mockTable"."one", "mockTable"."two", "mockTable"."three" ) VALUES (:ins0, :ins1, :ins2) ';
+        $sql = 'INSERT INTO "mockTable" ("one", "two", "three" ) VALUES (:ins0, :ins1, :ins2) ';
 
         $mysqlQuery = new PostgresQuery();
         $mysqlQuery->setType('INSERT');
