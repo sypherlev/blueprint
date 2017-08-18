@@ -189,7 +189,7 @@ class BlueprintPostgresTest extends TestCase
 
     public function testInsertQuery() {
         $output = [[
-            'sql' => 'INSERT INTO "mockTable" ("mockTable"."created", "mockTable"."col1", "mockTable"."col2" ) VALUES (:ins0, :ins1, :ins2) ',
+            'sql' => 'INSERT INTO "mockTable" ("created", "col1", "col2" ) VALUES (:ins0, :ins1, :ins2) ',
             'binds' => [
                 ':ins0' => 1484784000,
                 ':ins1' => 'firstcolumn',
