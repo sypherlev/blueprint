@@ -129,7 +129,9 @@ class PostgresQuery implements QueryInterface
         $query = $this->type . ' INTO ';
         $query .= '"' . $this->table . '" ';
         if (!empty($this->columns)) {
-            $query .= '(' . $this->compileColumns() . ') ';
+            $columns = $this->compileColumns();
+            $columns = str_replace('"' . $this->table . '".','', $columns);
+            $query .= '(' . $columns . ') ';
         }
         $query .= 'VALUES ';
         $query .= $this->compileRecords();
