@@ -1,9 +1,6 @@
----
-layout: page
-title: "Using Patterns"
-category: pat
-date: 2016-10-18 15:13:55
----
+# Patterns
+
+[Function List](https://github.com/sypherlev/blueprint/blob/master/docs/PatternFunctions.md)
 
 The first part of Blueprint is the **Pattern** - a sequence of query builder commands.
 
@@ -13,7 +10,7 @@ The first part of Blueprint is the **Pattern** - a sequence of query builder com
             ->columns(['username', 'first_name', 'last_name', 'email', 'phone']);
     });
     
-Apply the Pattern to a SELECT, and it will merge those commands into the query. (Apply it to an UPDATE or INSERT, and it will update/insert into the specified table and only the specified columns.)
+Apply the Pattern to a SELECT, and it will merge those commands into the query. (Apply it to an UPDATE or INSERT, and it will update/insert into the specified **primary** table and only the specified columns for that table.)
 
     public function getUser($id) {
         return $this
@@ -33,8 +30,7 @@ You can specify more complex Patterns, including joins.
                 'users' => ['*'],
                 'users_extended' => ['addr1', 'addr2', 'postcode', 'city', 'state', 'country'],
                 'businesses' => ['business_name', 'industry', 'website']
-            ])
-            ->limit(100);
+            ]);
     });
     
 And then using the same function, you can call whichever Pattern you need. (Applying a complex Pattern to an UPDATE or INSERT will validate against the primary table only, and it will NOT validate at all against a '*' selection.)
@@ -59,4 +55,13 @@ You can add more commands, and override any of the Pattern's commands.
             ->many();
     }
 
-Patterns may only be applied once per query. Calling *withPattern* a second time simply overwrites the first Pattern. Patterns allow you to set a primary table, any number of joins, columns, orderBy, limit, and groupBy.
+Patterns may only be applied once per query. Calling *withPattern* a second time simply overwrites the first Pattern. Patterns allow you to set a primary table, any number of joins, columns, aggregate functions, and groupBy.
+
+    public function getSumActiveUsers() {
+        return $this
+            ->select()
+            ->withPattern('summary')
+            ->where(['active' => 1])
+            ->aggregate('SUM', 'id', 'usercount)
+            ->many();
+    }

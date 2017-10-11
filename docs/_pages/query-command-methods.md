@@ -1,1 +1,0 @@
-../_posts/2016-10-18-query-command-methods.md

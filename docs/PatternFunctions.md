@@ -1,13 +1,8 @@
----
-layout: page
-title: "Pattern Methods"
-category: pat
-date: 2017-01-21 16:24:37
----
+# Pattern Methods
 
 Pattern methods store the query elements below, and can be applied to a Query when the Pattern is used.
 
-All methods below are analogues to those of the same name in the Blueprint class.
+All methods below are analogues to those of the same name in the Blueprint query builder.
 
 * table
 * where
@@ -18,8 +13,9 @@ All methods below are analogues to those of the same name in the Blueprint class
 
 ### setQueryParams
  
-| Parameters   | QueryInterface $query  |
-| Returns      | $query |
+| Parameters   | 
+| --- | 
+| QueryInterface $query |
 
 This function causes the Pattern's settings to be applied to the $query.
 
