@@ -494,6 +494,20 @@ abstract class Blueprint
         }
     }
 
+    /**
+     * Reset the query and source; prep for another pass
+     *
+     */
+    protected function reset() {
+        $this->activePattern = false;
+        $this->activeFilters = [];
+        $this->activeTransformations = [];
+        $this->insert_records = [];
+        $this->set = [];
+        $queryclass = get_class($this->query);
+        $this->query = new $queryclass();
+    }
+
     // PRIVATE METHODS
 
     private function loadElements($query = false) {
@@ -514,15 +528,5 @@ abstract class Blueprint
         else {
             return $this->query;
         }
-    }
-
-    private function reset() {
-        $this->activePattern = false;
-        $this->activeFilters = [];
-        $this->activeTransformations = [];
-        $this->insert_records = [];
-        $this->set = [];
-        $queryclass = get_class($this->query);
-        $this->query = new $queryclass();
     }
 }
