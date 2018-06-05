@@ -160,8 +160,10 @@ abstract class Blueprint
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->one();
-        if($result && !empty($this->activeTransformations)) {
-            foreach ($this->activeTransformations as $transform) {
+        $activeTransformations = $this->activeTransformations;
+        $this->reset();
+        if($result && !empty($activeTransformations)) {
+            foreach ($activeTransformations as $transform) {
                 if(isset($this->transforms[$transform])) {
                     $result = call_user_func($this->transforms[$transform], $result);
                 }
@@ -179,8 +181,10 @@ abstract class Blueprint
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->many();
-        if($result && !empty($this->activeTransformations)) {
-            foreach ($this->activeTransformations as $transform) {
+        $activeTransformations = $this->activeTransformations;
+        $this->reset();
+        if($result && !empty($activeTransformations)) {
+            foreach ($activeTransformations as $transform) {
                 if(isset($this->transforms[$transform])) {
                     foreach ($result as $idx => $r) {
                         $result[$idx] = call_user_func($this->transforms[$transform], $r);
