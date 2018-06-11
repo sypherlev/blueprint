@@ -223,7 +223,20 @@ AND    i.indisprimary;";
 
     public function lastInsertId($name = null)
     {
-        return $this->pdo->lastInsertId($name);
+        // checking for nulls, Postgres doesn't handle nulls at all here
+        if(is_null($name)) {
+            throw new \Exception('Postgres requires a sequence name to get the last insert ID');
+        }
+        $id = $this->pdo->lastInsertId($name);
+        if($id == false) {
+            // then check for a possible other sequence
+            $primary_key = $this->getPrimaryKey($name);
+            $id = $this->pdo->lastInsertId($name.'_'.$primary_key.'_seq');
+            if($id == false) {
+                throw new \Exception("Can't get last insert ID for ".$name."; you must supply the correct sequence name.");
+            }
+        }
+        return $id;
     }
 
     public function beginTransaction()
