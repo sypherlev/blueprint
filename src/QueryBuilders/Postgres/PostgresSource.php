@@ -227,14 +227,12 @@ AND    i.indisprimary;";
         if(is_null($name)) {
             throw new \Exception('Postgres requires a sequence name to get the last insert ID');
         }
-        $id = $this->pdo->lastInsertId($name);
+
+        // use the primary key to try to get the sequence name
+        $primary_key = $this->getPrimaryKey($name);
+        $id = $this->pdo->lastInsertId($name.'_'.$primary_key.'_seq');
         if($id == false) {
-            // then check for a possible other sequence
-            $primary_key = $this->getPrimaryKey($name);
-            $id = $this->pdo->lastInsertId($name.'_'.$primary_key.'_seq');
-            if($id == false) {
-                throw new \Exception("Can't get last insert ID for ".$name."; you must supply the correct sequence name.");
-            }
+            throw new \Exception("Can't get last insert ID for ".$name."; you must supply the correct sequence name.");
         }
         return $id;
     }
