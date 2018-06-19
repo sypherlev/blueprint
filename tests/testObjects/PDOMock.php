@@ -75,7 +75,7 @@ class PDOMock extends TestCase
         return $mockPDO;
     }
 
-    public function createUtilityPDO($boolean) {
+    public function createUtilityPDOMySQL($boolean) {
 
         $mockPDO = $this->getMockBuilder('\PDO')
             ->disableOriginalConstructor()
@@ -92,6 +92,47 @@ class PDOMock extends TestCase
         $mockPDO->expects($this->once())
             ->method('rollBack')
             ->will($this->returnValue($boolean));
+
+        return $mockPDO;
+    }
+
+    public function createUtilityPDOPostgres($boolean) {
+        $mockPDO = $this->getMockBuilder('\PDO')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mockPDO->expects($this->once())
+            ->method('lastInsertId')
+            ->will($this->returnValue(1));
+
+        $mockPDO->expects($this->once())
+            ->method('commit')
+            ->will($this->returnValue($boolean));
+
+        $mockPDO->expects($this->once())
+            ->method('rollBack')
+            ->will($this->returnValue($boolean));
+
+        $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
+
+        $columnName = new \stdClass();
+        $columnName->attname = 'id';
+
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue([$columnName]));
+
+        $mockPDOStatement->expects($this->any())
+            ->method('execute')
+            ->will($this->returnValue(true));
+
+        $mockPDO->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($mockPDOStatement));
+
+        $mockPDO->expects($this->any())
+            ->method('query')
+            ->will($this->returnValue($mockPDOStatement));
 
         return $mockPDO;
     }

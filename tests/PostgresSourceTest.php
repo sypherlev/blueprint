@@ -192,10 +192,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOUtilitiesTrue() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createUtilityPDO(true));
+        $postgresSource = new PostgresSource($PDOMock->createUtilityPDOPostgres(true));
         $postgresSource->beginTransaction();
 
-        $this->assertEquals(1, $postgresSource->lastInsertId());
+        $this->assertEquals(1, $postgresSource->lastInsertId('tablename'));
         $this->assertEquals(true, $postgresSource->commit());
 
         $postgresSource->beginTransaction();
@@ -222,7 +222,7 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOUtilitiesFalse() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createUtilityPDO(false));
+        $postgresSource = new PostgresSource($PDOMock->createUtilityPDOPostgres(false));
 
         $this->assertEquals(false, $postgresSource->commit());
 

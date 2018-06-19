@@ -231,7 +231,7 @@ AND    i.indisprimary;";
         // use the primary key to try to get the sequence name
         $primary_key = $this->getPrimaryKey($name);
         $id = $this->pdo->lastInsertId($name.'_'.$primary_key.'_seq');
-        if($id == false) {
+        if($id === false || is_null($id)) {
             throw new \Exception("Can't get last insert ID for ".$name."; you must supply the correct sequence name.");
         }
         return $id;

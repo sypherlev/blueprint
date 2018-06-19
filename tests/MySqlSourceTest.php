@@ -192,7 +192,7 @@ class MySqlSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOUtilitiesTrue() {
         $PDOMock = new PDOMock();
-        $mysqlSource = new MySqlSource($PDOMock->createUtilityPDO(true));
+        $mysqlSource = new MySqlSource($PDOMock->createUtilityPDOMySQL(true));
         $mysqlSource->beginTransaction();
 
         $this->assertEquals(1, $mysqlSource->lastInsertId());
@@ -222,7 +222,7 @@ class MySqlSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOUtilitiesFalse() {
         $PDOMock = new PDOMock();
-        $mysqlSource = new MySqlSource($PDOMock->createUtilityPDO(false));
+        $mysqlSource = new MySqlSource($PDOMock->createUtilityPDOMySQL(false));
 
         $this->assertEquals(false, $mysqlSource->commit());
 
