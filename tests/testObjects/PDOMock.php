@@ -205,15 +205,19 @@ class PDOMock extends TestCase
         $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
 
         $columnName = new \stdClass();
-        $columnName->COLUMN_NAME = 'id';
+        $columnName->column_name = 'id';
 
         $mockPDOStatement->expects($this->any())
-            ->method('fetchAll')
-            ->will($this->returnValue([$columnName]));
+            ->method('fetch')
+            ->will($this->returnValue($columnName));
 
         $mockPDOStatement->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(true));
+
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchColumn')
+            ->will($this->returnValue('mockDatabase'));
 
         $mockPDO = $this->getMockBuilder('\PDO')
             ->disableOriginalConstructor()
