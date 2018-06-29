@@ -212,15 +212,17 @@ class MySqlSource implements SourceInterface
 
     public function getPrimaryKey($tableName)
     {
-        $sql = "SHOW KEYS FROM $tableName WHERE Key_name = 'PRIMARY'";
-        $result = $this->raw($sql, [], 'fetchAll');
+        $database = $this->getDatabaseName();
+        $sql = "SELECT k.column_name
+FROM information_schema.table_constraints t
+JOIN information_schema.key_column_usage k
+USING(constraint_name,table_schema,table_name)
+WHERE t.constraint_type='PRIMARY KEY'
+  AND t.table_schema=:schemaName
+  AND t.table_name=:tableName;";
+        $result = $this->raw($sql, [':tableName' => $tableName, ':schemaName' => $database], 'fetch');
         if($result) {
-            if(isset($result[0]->COLUMN_NAME)) {
-                return $result[0]->COLUMN_NAME;
-            }
-            if(isset($result[0]->Column_name)) {
-                return $result[0]->Column_name;
-            }
+            return $result->column_name;
         }
         return null;
     }
