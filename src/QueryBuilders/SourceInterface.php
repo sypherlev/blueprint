@@ -75,7 +75,7 @@ interface SourceInterface
      * @param null $name
      * @return int
      */
-    public function lastInsertId($name = null);
+    public function lastInsertId($name = "");
 
     /**
      * Alias for PDO::beginTransaction with some additional tracking

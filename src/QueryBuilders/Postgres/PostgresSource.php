@@ -221,10 +221,10 @@ AND    i.indisprimary;";
 
     // Wrappers for some useful PDO functions
 
-    public function lastInsertId($name = null)
+    public function lastInsertId($name = "")
     {
         // checking for nulls, Postgres doesn't handle nulls at all here
-        if(is_null($name)) {
+        if($name == "") {
             throw new \Exception('Postgres requires a sequence name to get the last insert ID');
         }
 

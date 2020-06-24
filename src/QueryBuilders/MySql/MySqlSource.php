@@ -229,9 +229,12 @@ WHERE t.constraint_type='PRIMARY KEY'
 
     // Wrappers for some useful PDO functions
 
-    public function lastInsertId($name = null)
+    public function lastInsertId($name = "")
     {
-        return $this->pdo->lastInsertId($name);
+        if($name != "") {
+            return $this->pdo->lastInsertId($name);
+        }
+        return $this->pdo->lastInsertId();
     }
 
     public function beginTransaction()
