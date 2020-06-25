@@ -72,7 +72,7 @@ interface SourceInterface
     /**
      * Alias for PDO::lastInsertId
      *
-     * @param null $name
+     * @param string $name
      * @return int
      */
     public function lastInsertId($name = "");
