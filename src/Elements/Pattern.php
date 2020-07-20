@@ -12,17 +12,17 @@ class Pattern
     private $group = null;
     private $aggregates = [];
 
-    public function table($tableName) {
+    public function table(string $tableName) : Pattern {
         $this->table = $tableName;
         return $this;
     }
 
-    public function columns($columns) {
+    public function columns(array $columns) : Pattern {
         $this->columns = $columns;
         return $this;
     }
 
-    public function join($firsttable, $secondtable, Array $on, $type = 'inner') {
+    public function join(string $firsttable, string $secondtable, array $on, string $type = 'inner') : Pattern {
         $this->joins[] = array(
             'firsttable' => $firsttable,
             'secondtable' => $secondtable,
@@ -32,24 +32,20 @@ class Pattern
         return $this;
     }
 
-    public function groupBy($columnname_or_columnarray) {
-        if (!is_array($columnname_or_columnarray)) {
-            $columnname_or_columnarray = [$columnname_or_columnarray];
-        }
-        $this->group = $columnname_or_columnarray;
+    public function groupBy(array $columns) : Pattern {
+        $this->group = $columns;
         return $this;
     }
 
-    public function aggregate($function, $columnName_or_columnArray, $alias = false) {
+    public function aggregate(string $function, array $columns) : Pattern {
         $this->aggregates[] = array(
             'function' => $function,
-            'columns' => $columnName_or_columnArray,
-            'alias' => $alias
+            'columns' => $columns
         );
         return $this;
     }
 
-    public function setQueryParams(QueryInterface $query) {
+    public function setQueryParams(QueryInterface $query) : QueryInterface {
         $query->setTable($this->table);
         foreach ($this->joins as $join) {
             $query->setJoin($join['firsttable'], $join['secondtable'], $join['on'], $join['type']);

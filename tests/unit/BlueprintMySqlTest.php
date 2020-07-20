@@ -1,11 +1,15 @@
 <?php
 
+namespace Test\unit;
+
+include_once realpath(__DIR__."/../testObjects/BlueprintMock.php");
+include_once realpath(__DIR__."/../testObjects/PDOMock.php");
+
 use PHPUnit\Framework\TestCase;
 use SypherLev\Blueprint\QueryBuilders\MySql\MySqlSource;
 use SypherLev\Blueprint\QueryBuilders\MySql\MySqlQuery;
-
-include_once "testObjects/BlueprintMock.php";
-include_once "testObjects/PDOMock.php";
+use Test\testObjects\BlueprintMock;
+use Test\testObjects\PDOMock;
 
 class BlueprintMySqlTest extends TestCase
 {
@@ -13,7 +17,7 @@ class BlueprintMySqlTest extends TestCase
 
         $objectArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
             $obj->created = 1484784000;
@@ -24,10 +28,10 @@ class BlueprintMySqlTest extends TestCase
 
         $resultArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
-            $obj->created = '2017-01-19';
+            $obj->created = "2017-01-19";
             $obj->firstcolumn = 'firstcolumn'.$i;
             $obj->secondcolumn = 'secondcolumn'.$i;
             $resultArray[] = $obj;
@@ -35,21 +39,56 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
+
         $blueprintmany = new BlueprintMock(
-            new MySqlSource($PDOMock->createFetchAllPDO($objectArray)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
+
         $this->assertEquals($resultArray, $blueprintmany->getMany());
+    }
+
+    public function testSelectFilter() {
+        $objectArray = [];
+        for ($i = 0; $i < 5; $i++) {
+            $obj = new \stdClass();
+            $obj->id = $i;
+            $obj->mockcol = 'mockcol'.$i;
+            $obj->created = 1484784000;
+            $obj->firstcolumn = 'firstcolumn'.$i;
+            $obj->secondcolumn = 'secondcolumn'.$i;
+            $objectArray[] = $obj;
+        }
+
+        $resultArray = [];
+        for ($i = 0; $i < 5; $i++) {
+            $obj = new \stdClass();
+            $obj->id = $i;
+            $obj->mockcol = 'mockcol'.$i;
+            $obj->created = 1484784000;
+            $obj->firstcolumn = 'firstcolumn'.$i;
+            $obj->secondcolumn = 'secondcolumn'.$i;
+            $obj->current_index = $i;
+            $resultArray[] = $obj;
+        }
+
+        $PDOMock = new PDOMock();
+
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
 
         $blueprintfilter = new BlueprintMock(
-            new MySqlSource($PDOMock->createFetchAllPDO($objectArray)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
+
         $this->assertEquals($resultArray, $blueprintfilter->getWithFilter());
     }
 
     public function testSelectSingle() {
-        $obj = new stdClass();
+        $obj = new \stdClass();
         $obj->id = 1;
         $obj->mockcol = 'mockcol1';
         $obj->created = 1484784000;
@@ -58,11 +97,15 @@ class BlueprintMySqlTest extends TestCase
 
         $res = clone $obj;
         $res->created = '2017-01-19';
+        $res->current_index = 0;
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($obj);
+
         $blueprintsingle = new BlueprintMock(
-            new MySqlSource($PDOMock->createFetchPDO($obj)), new MySqlQuery()
+            new MySqlSource($pdo), new MySqlQuery()
         );
         $this->assertEquals($res, $blueprintsingle->getSingle());
     }
@@ -77,20 +120,26 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintinsert = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals(true, $blueprintinsert->insertRecord($insertRecord));
     }
 
     public function testSelectSql() {
-        $sql = 'SELECT `mockTable`.*, `joinTable`.`firstcolumn` AS `alias1`, `joinTable`.`secondcolumn` AS `alias2`, SUM(`mockTable`.`col2`) AS `col2` FROM `mockTable` LEFT JOIN `joinTable` ON `mockTable`.`id` = `joinTable`.`join_id` WHERE (`mockTable`.`id` > :wh0) GROUP BY `mockTable`.`col1` ORDER BY `mockTable`.`id` DESC LIMIT 0, 5 ';
+        $sql = 'SELECT `mockTable`.*, `joinTable`.`firstcolumn` AS `alias1`, `joinTable`.`secondcolumn` AS `alias2`, SUM(`mockTable`.`col2`) AS `alias` FROM `mockTable` LEFT JOIN `joinTable` ON `mockTable`.`id` = `joinTable`.`join_id` WHERE (`mockTable`.`id` > :wh0) GROUP BY `mockTable`.`col1` ORDER BY `mockTable`.`id` DESC LIMIT 0, 5 ';
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($sql, $blueprintquery->testSelectQuery());
@@ -101,8 +150,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getInArray());
@@ -113,8 +165,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testSelectBindings());
@@ -135,8 +190,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testInsertBindings($insertRecord));
@@ -156,8 +214,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testUpdateBindings(1, $updateRecord));
@@ -167,9 +228,11 @@ class BlueprintMySqlTest extends TestCase
         $sql = 'SELECT * FROM `mockTable` WHERE (`mockTable`.`id` = :wh0) ';
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getWithoutColumns());
@@ -180,8 +243,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getOnlyAggregates());
@@ -189,11 +255,12 @@ class BlueprintMySqlTest extends TestCase
 
     public function testInsertQuery() {
         $output = [[
-            'sql' => 'INSERT INTO `mockTable` (`mockTable`.`created`, `mockTable`.`col1`, `mockTable`.`col2` ) VALUES (:ins0, :ins1, :ins2) ',
+            'sql' => 'INSERT INTO `mockTable` (`mockTable`.`created`, `mockTable`.`col1`, `mockTable`.`col2`, `mockTable`.`current_index` ) VALUES (:ins0, :ins1, :ins2, :ins3) ',
             'binds' => [
                 ':ins0' => 1484784000,
                 ':ins1' => 'firstcolumn',
-                ':ins2' => 'secondcolumn'
+                ':ins2' => 'secondcolumn',
+                ':ins3' => 0
             ],
             'error' => '00000'
         ]];
@@ -206,8 +273,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -216,12 +286,13 @@ class BlueprintMySqlTest extends TestCase
 
     public function testUpdateQuery() {
         $output = [[
-            'sql' => 'UPDATE `mockTable` SET `created` = :up0, `col1` = :up1, `col2` = :up2 WHERE (`mockTable`.`id` = :wh0) ',
+            'sql' => 'UPDATE `mockTable` SET `created` = :up0, `col1` = :up1, `col2` = :up2, `current_index` = :up3 WHERE (`mockTable`.`id` = :wh0) ',
             'binds' => [
                 ':wh0' => 1,
                 ':up0' => 1484784000,
                 ':up1' => 'firstcolumn',
-                ':up2' => 'secondcolumn'
+                ':up2' => 'secondcolumn',
+                ':up3' => '0'
             ],
             'error' => '00000'
         ]];
@@ -229,15 +300,19 @@ class BlueprintMySqlTest extends TestCase
         $updateRecord = [
             'created' => '2017-01-19',
             'col1' => 'firstcolumn',
-            'col2' => 'secondcolumn'
+            'col2' => 'secondcolumn',
+            'current_index' => 0
         ];
 
         $id = 1;
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -257,8 +332,11 @@ class BlueprintMySqlTest extends TestCase
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -271,13 +349,19 @@ class BlueprintMySqlTest extends TestCase
             'binds' => [
                 ':wh0' => 1
             ],
-            'error' => '00000'
+            'error' => null
         ]];
+
+        $result = new \stdClass();
+        $result->count = 10;
 
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($result);
+
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -287,10 +371,17 @@ class BlueprintMySqlTest extends TestCase
     public function testReverseOrderTableQuery() {
         $sql = 'SELECT `mockTable`.`one`, `mockTable`.`two`, `mockTable`.`three` FROM `mockTable` ';
 
+        $result = new \stdClass();
+        $result->one = 'one';
+        $result->two = 'two';
+        $result->three = 'three';
+
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($result);
 
         $blueprintquery = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -300,8 +391,11 @@ class BlueprintMySqlTest extends TestCase
     public function testExceptions() {
         $PDOMock = new PDOMock();
 
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
         $blueprintexceptions = new BlueprintMock(
-            new MySqlSource($PDOMock->createBooleanPDO(true)),
+            new MySqlSource($pdo),
             new MySqlQuery()
         );
 
@@ -311,5 +405,36 @@ class BlueprintMySqlTest extends TestCase
 
         $this->assertInstanceOf('Exception', $blueprintexceptions->testPatternAddingException());
         $this->assertInstanceOf('Exception', $blueprintexceptions->testFilterAddingException());
+        $this->assertInstanceOf('Exception', $blueprintexceptions->testCountBadResult());
+    }
+
+    public function testAdditionalFunctions() {
+        $output = [
+            ':wh0' => 1
+        ];
+
+        $PDOMock = new PDOMock();
+
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createMysqlSchemaPDO();
+
+        $blueprintquery = new BlueprintMock(
+            new MySqlSource($pdo),
+            new MySqlQuery()
+        );
+
+        $blueprintquery->testWhitelists();
+        $this->assertEquals($output, $blueprintquery->testGetBindings());
+        $this->assertEquals(['mockColumn'], $blueprintquery->testGetColumns());
+
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createMysqlPrimaryKeysPDO();
+
+        $blueprintquery = new BlueprintMock(
+            new MySqlSource($pdo),
+            new MySqlQuery()
+        );
+
+        $this->assertEquals("id", $blueprintquery->testGetPrimaryKey());
     }
 }

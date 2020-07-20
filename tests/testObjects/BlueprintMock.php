@@ -1,5 +1,7 @@
 <?php
 
+namespace Test\testObjects;
+
 use \SypherLev\Blueprint\QueryBuilders\SourceInterface;
 use \SypherLev\Blueprint\QueryBuilders\QueryInterface;
 
@@ -17,15 +19,15 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
                     'mockTable' => ['*'],
                     'joinTable' => ['firstcolumn', 'secondcolumn']
                 ])
-                ->aggregate('sum', 'col2', 'alias')
-                ->groupBy('col1');
+                ->aggregate('sum', ['col2'])
+                ->groupBy(['col1']);
         });
 
         $this->addPattern('insert', function () {
             return (new \SypherLev\Blueprint\Elements\Pattern())
                 ->table('mockTable')
                 ->columns([
-                    'created', 'col1', 'col2'
+                    'created', 'col1', 'col2', 'current_index'
                 ]);
         });
 
@@ -33,14 +35,14 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
             return (new \SypherLev\Blueprint\Elements\Pattern())
                 ->table('mockTable')
                 ->columns([
-                    'col1', 'col2'
+                    'col1', 'col2', 'current_index'
                 ]);
         });
 
         $this->addFilter('activeOnly', function () {
             return (new \SypherLev\Blueprint\Elements\Filter())
                 ->where(['created > ' => time() - 86000])
-                ->orderBy('created', 'DESC', true)
+                ->orderBy(['created'], 'DESC', true)
                 ->limit(10, 50);
         });
 
@@ -48,6 +50,25 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
             if (isset($record->created)) {
                 $record->created = date('Y-m-d', $record->created);
             }
+            return $record;
+        });
+
+        $this->addTransformation('arrayTransformation', function ($records) {
+            foreach ($records as $idx => $r) {
+                $records[$idx]->current_index = $idx;
+            }
+            return $records;
+        }, true);
+
+        $this->addTransformation('arrayInsertTransformation', function ($records) {
+            foreach ($records as $idx => $r) {
+                $records[$idx]['current_index'] = $idx;
+            }
+            return $records;
+        }, true);
+
+        $this->addTransformation('singleStringToTimestamp', function ($record) {
+            $record['current_index'] = 0;
             return $record;
         });
 
@@ -66,7 +87,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
         return $this->select()
             ->withPattern('whole')
             ->withTransformation('createdTimestampToString')
-            ->orderBy('col1')
+            ->orderBy(['col1'])
             ->limit(5)
             ->many();
     }
@@ -77,6 +98,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
             ->withPattern('whole')
             ->where(['mockTable' => ['id' => 1]])
             ->withTransformation('createdTimestampToString')
+            ->withTransformation('arrayTransformation')
             ->one();
     }
 
@@ -107,6 +129,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
         return $this->select()
             ->withPattern('whole')
             ->withFilter('activeOnly')
+            ->withTransformation('arrayTransformation')
             ->many();
     }
 
@@ -114,6 +137,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
     {
         return $this->insert()
             ->withPattern('insert')
+            ->withTransformation('arrayInsertTransformation')
             ->add($record)
             ->execute();
     }
@@ -126,7 +150,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
                 'mockTable' => ['*'],
                 'joinTable' => ['alias1' => 'firstcolumn', 'alias2' => 'secondcolumn']
             ])
-            ->aggregate('sum', 'col2', 'alias')
+            ->aggregate('sum', ['alias' => 'col2'])
             ->table('mockTable')
             ->where(['mockTable' => ['id >' => 0]])
             ->groupBy(['mockTable' => 'col1'])
@@ -139,10 +163,10 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
     {
         $this->select()
             ->withPattern('whole')
-            ->aggregate('sum', 'col2', 'alias')
+            ->aggregate('sum', ['alias' => 'col2'])
             ->where(['mockTable' => ['id >' => 0]])
             ->orderBy(['mockTable' => 'id'])
-            ->groupBy('col1')
+            ->groupBy(['col1'])
             ->limit(5);
         return $this->getCurrentBindings();
     }
@@ -171,6 +195,7 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
             ->withPattern('insert')
             ->add($record)
             ->withTransformation('createdStringToTimestamp')
+            ->withTransformation('singleStringToTimestamp')
             ->execute();
         $this->stop();
         return $this->output();
@@ -182,11 +207,12 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
         $this->update()
             ->table('mockTable')
             ->columns([
-                'created', 'col1', 'col2'
+                'created', 'col1', 'col2', 'current_index'
             ])
             ->set($record)
             ->where(['id' => $id])
             ->withTransformation('createdStringToTimestamp')
+            ->withTransformation('singleStringToTimestamp')
             ->execute();
         $this->source->stopRecording();
         return $this->source->getRecordedOutput();
@@ -272,10 +298,40 @@ class BlueprintMock extends \SypherLev\Blueprint\Blueprint
         }
     }
 
+    public function testCountBadResult() {
+        try {
+            $this->select()->count();
+            return null;
+        } catch (\Exception $e) {
+            return $e;
+        }
+    }
+
     public function testReverseOrderTableSetting() {
         $this->select()
             ->columns(['one', 'two', 'three'])
             ->table('mockTable');
         return $this->getCurrentSQL();
+    }
+
+    public function testGetBindings() {
+        $this->whitelistColumn(['id']);
+        $this->select()
+            ->table('mockTable')
+            ->where(['id >' => 1]);
+        return $this->getCurrentBindings();
+    }
+
+    public function testGetColumns() {
+        return $this->getTableColumns('mockTable');
+    }
+
+    public function testGetPrimaryKey() {
+        return $this->getPrimaryKey('mockTable');
+    }
+
+    public function testWhitelists() {
+        $this->whitelistColumn(['mockColumn']);
+        $this->whitelistTable(['mockTable']);
     }
 }

@@ -12,39 +12,39 @@ interface SourceInterface
      * Arbitrary SQL and binds can be passed in for debugging purposes.
      * Returns the result as an object or boolean if nothing found/error occured.
      *
-     * @param bool $sql
-     * @param bool $binds
-     * @return object|boolean
+     * @param string $sql
+     * @param array $binds
+     * @return \stdClass
      */
-    public function one($sql = false, $binds = false);
+    public function one(string $sql = "", array $binds = []) : \stdClass;
 
     /**
      * Execute the current query and return an array of results.
      * Arbitrary SQL and binds can be passed in for debugging purposes
      *
-     * @param bool $sql
-     * @param bool $binds
+     * @param string $sql
+     * @param array $binds
      * @return array
      */
-    public function many($sql = false, $binds = false);
+    public function many(string $sql = "", array $binds = []) : array;
 
     /**
      * Execute the current query and return a single integer count.
      * Returns integer count or boolean if error occurred.
      *
-     * @return integer|boolean
+     * @return integer
      */
-    public function count();
+    public function count() : int;
 
     /**
      * Execute the current query and return true or false.
      * Arbitrary SQL and binds can be passed in for debugging purposes
      *
-     * @param bool $sql
-     * @param bool $binds
+     * @param string $sql
+     * @param array $binds
      * @return boolean
      */
-    public function execute($sql = false, $binds = false);
+    public function execute(string $sql = "", array $binds = []) : bool;
 
     /**
      * WARNING: Don't use this unless you know what you're doing
@@ -54,13 +54,13 @@ interface SourceInterface
      *
      * TO DO: make the return values less stupid
      *
-     * @param $sql - a prepared SQL statement
-     * @param $values - an array of corresponding bind values: array(':vm1' => $value)
+     * @param string $sql - a prepared SQL statement
+     * @param array $values - an array of corresponding bind values: array(':vm1' => $value)
      * @param string $fetch - (optional) set as 'fetch' or 'fetchAll' to get results
      * @param int $returntype - defaults to PDO::FETCH_OBJ, must be a PDO return type
-     * @return array|bool|\Exception|mixed
+     * @return array|bool|object
      */
-    public function raw($sql, $values, $fetch = '', $returntype = \PDO::FETCH_OBJ);
+    public function raw(string $sql, array $values, string $fetch = '', int $returntype = \PDO::FETCH_OBJ);
 
     /**
      * Reset the current query
@@ -75,7 +75,7 @@ interface SourceInterface
      * @param string $name
      * @return int
      */
-    public function lastInsertId($name = "");
+    public function lastInsertId(string $name = "") : int;
 
     /**
      * Alias for PDO::beginTransaction with some additional tracking
@@ -110,7 +110,7 @@ interface SourceInterface
      *
      * @return array
      */
-    public function getRecordedOutput();
+    public function getRecordedOutput() : array;
 
     /**
      * Get a list of columns from a table in the current database
@@ -118,7 +118,7 @@ interface SourceInterface
      * @param $tableName
      * @return array
      */
-    public function getTableColumns($tableName);
+    public function getTableColumns(string $tableName) : array;
 
     /**
      * Returns the primary key of a table in the current database
@@ -126,7 +126,7 @@ interface SourceInterface
      * @param $tableName
      * @return string
      */
-    public function getPrimaryKey($tableName);
+    public function getPrimaryKey(string $tableName) : string;
 
     /**
      * Sets the current query object
@@ -138,5 +138,5 @@ interface SourceInterface
     /**
      * Generate a new QueryInterface object appropriate for this source's driver
      */
-    public function generateNewQuery();
+    public function generateNewQuery() : QueryInterface;
 }

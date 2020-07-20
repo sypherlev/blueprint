@@ -1,10 +1,12 @@
 <?php
 
+namespace Test\testObjects;
+
 use PHPUnit\Framework\TestCase;
 
 class PDOMock extends TestCase
 {
-    public function createFetchPDO(stdClass $expectedOutput) {
+    public function createFetchPDO(\stdClass $expectedOutput) {
         $mockPDOStatement = $this->getMockBuilder('\PDOStatement')->getMock();
         $mockPDOStatement->expects($this->any())
             ->method('fetch')
@@ -13,10 +15,16 @@ class PDOMock extends TestCase
         $mockPDOStatement->expects($this->any())
             ->method('execute')
             ->will($this->returnValue(true));
+        $mockPDOStatement->expects($this->any())
+            ->method('fetchColumn')
+            ->will($this->returnValue('mockDatabase'));
 
         $mockPDO = $this->getMockBuilder('\PDO')
             ->disableOriginalConstructor()
             ->getMock();
+        $mockPDO->expects($this->any())
+            ->method('query')
+            ->will($this->returnValue($mockPDOStatement));
         $mockPDO->expects($this->once())
             ->method('prepare')
             ->will($this->returnValue($mockPDOStatement));
@@ -39,6 +47,9 @@ class PDOMock extends TestCase
         $mockPDO->expects($this->once())
             ->method('prepare')
             ->will($this->returnValue($mockPDOStatement));
+        $mockPDO->expects($this->once())
+            ->method('lastInsertId')
+            ->will($this->returnValue(false));
         return $mockPDO;
     }
 
@@ -81,7 +92,7 @@ class PDOMock extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $mockPDO->expects($this->once())
+        $mockPDO->expects($this->any())
             ->method('lastInsertId')
             ->will($this->returnValue(1));
 

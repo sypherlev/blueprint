@@ -1,19 +1,58 @@
 <?php
 
+namespace Test\unit;
+
+include_once realpath(__DIR__ . "/../testObjects/BlueprintMock.php");
+include_once realpath(__DIR__ . "/../testObjects/PDOMock.php");
+
 use PHPUnit\Framework\TestCase;
 use SypherLev\Blueprint\QueryBuilders\Postgres\PostgresSource;
 use SypherLev\Blueprint\QueryBuilders\Postgres\PostgresQuery;
-
-include_once "testObjects/BlueprintMock.php";
-include_once "testObjects/PDOMock.php";
+use Test\testObjects\BlueprintMock;
+use Test\testObjects\PDOMock;
 
 class BlueprintPostgresTest extends TestCase
 {
-    public function testSelectMany() {
+    public function testSelectMany()
+    {
 
         $objectArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
+            $obj->id = $i;
+            $obj->mockcol = 'mockcol' . $i;
+            $obj->created = 1484784000;
+            $obj->firstcolumn = 'firstcolumn' . $i;
+            $obj->secondcolumn = 'secondcolumn' . $i;
+            $objectArray[] = $obj;
+        }
+
+        $resultArray = [];
+        for ($i = 0; $i < 5; $i++) {
+            $obj = new \stdClass();
+            $obj->id = $i;
+            $obj->mockcol = 'mockcol' . $i;
+            $obj->created = '2017-01-19';
+            $obj->firstcolumn = 'firstcolumn' . $i;
+            $obj->secondcolumn = 'secondcolumn' . $i;
+            $resultArray[] = $obj;
+        }
+
+        $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
+
+        $blueprintmany = new BlueprintMock(
+            new PostgresSource($pdo),
+            new PostgresQuery()
+        );
+        $this->assertEquals($resultArray, $blueprintmany->getMany());
+    }
+
+    public function testSelectFilter() {
+        $objectArray = [];
+        for ($i = 0; $i < 5; $i++) {
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
             $obj->created = 1484784000;
@@ -24,32 +63,32 @@ class BlueprintPostgresTest extends TestCase
 
         $resultArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
-            $obj->created = '2017-01-19';
+            $obj->created = 1484784000;
             $obj->firstcolumn = 'firstcolumn'.$i;
             $obj->secondcolumn = 'secondcolumn'.$i;
+            $obj->current_index = $i;
             $resultArray[] = $obj;
         }
 
         $PDOMock = new PDOMock();
 
-        $blueprintmany = new BlueprintMock(
-            new PostgresSource($PDOMock->createFetchAllPDO($objectArray)),
-            new PostgresQuery()
-        );
-        $this->assertEquals($resultArray, $blueprintmany->getMany());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
 
         $blueprintfilter = new BlueprintMock(
-            new PostgresSource($PDOMock->createFetchAllPDO($objectArray)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
+
         $this->assertEquals($resultArray, $blueprintfilter->getWithFilter());
     }
 
-    public function testSelectSingle() {
-        $obj = new stdClass();
+    public function testSelectSingle()
+    {
+        $obj = new \stdClass();
         $obj->id = 1;
         $obj->mockcol = 'mockcol1';
         $obj->created = 1484784000;
@@ -58,16 +97,20 @@ class BlueprintPostgresTest extends TestCase
 
         $res = clone $obj;
         $res->created = '2017-01-19';
+        $res->current_index = 0;
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($obj);
 
         $blueprintsingle = new BlueprintMock(
-            new PostgresSource($PDOMock->createFetchPDO($obj)), new PostgresQuery()
+            new PostgresSource($pdo), new PostgresQuery()
         );
         $this->assertEquals($res, $blueprintsingle->getSingle());
     }
 
-    public function testInsert() {
+    public function testInsert()
+    {
 
         $insertRecord = [
             'created' => time(),
@@ -76,51 +119,63 @@ class BlueprintPostgresTest extends TestCase
         ];
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintinsert = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals(true, $blueprintinsert->insertRecord($insertRecord));
     }
 
-    public function testSelectSql() {
-        $sql = 'SELECT "mockTable".*, "joinTable"."firstcolumn" AS "alias1", "joinTable"."secondcolumn" AS "alias2", SUM("mockTable"."col2") AS "col2" FROM "mockTable" LEFT JOIN "joinTable" ON "mockTable"."id" = "joinTable"."join_id" WHERE ("mockTable"."id" > :wh0) GROUP BY "mockTable"."col1" ORDER BY "mockTable"."id" DESC OFFSET 0 LIMIT 5 ';
+    public function testSelectSql()
+    {
+        $sql = 'SELECT "mockTable".*, "joinTable"."firstcolumn" AS "alias1", "joinTable"."secondcolumn" AS "alias2", SUM("mockTable"."col2") AS "alias" FROM "mockTable" LEFT JOIN "joinTable" ON "mockTable"."id" = "joinTable"."join_id" WHERE ("mockTable"."id" > :wh0) GROUP BY "mockTable"."col1" ORDER BY "mockTable"."id" DESC OFFSET 0 LIMIT 5 ';
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($sql, $blueprintquery->testSelectQuery());
     }
 
-    public function testSelectInSql() {
+    public function testSelectInSql()
+    {
         $sql = 'SELECT * FROM "mockTable" WHERE ("mockTable"."id" IN (:wh0, :wh1, :wh2)) ';
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getInArray());
     }
 
-    public function testSelectBindings() {
+    public function testSelectBindings()
+    {
         $bindings = [':wh0' => 0];
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testSelectBindings());
     }
 
-    public function testInsertBindings() {
+    public function testInsertBindings()
+    {
         $insertRecord = [
             'created' => '2017-01-19',
             'col1' => 'firstcolumn',
@@ -134,15 +189,18 @@ class BlueprintPostgresTest extends TestCase
         ];
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testInsertBindings($insertRecord));
     }
 
-    public function testUpdateBindings() {
+    public function testUpdateBindings()
+    {
         $updateRecord = [
             'col1' => 'firstcolumn',
             'col2' => 'secondcolumn'
@@ -155,45 +213,55 @@ class BlueprintPostgresTest extends TestCase
         ];
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($bindings, $blueprintquery->testUpdateBindings(1, $updateRecord));
     }
 
-    public function testSelectWithoutColumns() {
+    public function testSelectWithoutColumns()
+    {
         $sql = 'SELECT * FROM "mockTable" WHERE ("mockTable"."id" = :wh0) ';
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getWithoutColumns());
     }
 
-    public function testSelectOnlyAggregates() {
+    public function testSelectOnlyAggregates()
+    {
         $sql = 'SELECT SUM("mockTable"."firstcolumn") AS "firstcolumn" FROM "mockTable" GROUP BY "mockTable"."id" ';
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
         $this->assertEquals($sql, $blueprintquery->getOnlyAggregates());
     }
 
-    public function testInsertQuery() {
+    public function testInsertQuery()
+    {
         $output = [[
-            'sql' => 'INSERT INTO "mockTable" ("created", "col1", "col2" ) VALUES (:ins0, :ins1, :ins2) ',
+            'sql' => 'INSERT INTO "mockTable" ("created", "col1", "col2", "current_index" ) VALUES (:ins0, :ins1, :ins2, :ins3) ',
             'binds' => [
                 ':ins0' => 1484784000,
                 ':ins1' => 'firstcolumn',
-                ':ins2' => 'secondcolumn'
+                ':ins2' => 'secondcolumn',
+                ':ins3' => 0
             ],
             'error' => '00000'
         ]];
@@ -205,23 +273,27 @@ class BlueprintPostgresTest extends TestCase
         ];
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 
         $this->assertEquals($output, $blueprintquery->testInsertQuery($insertRecord));
     }
 
-    public function testUpdateQuery() {
+    public function testUpdateQuery()
+    {
         $output = [[
-            'sql' => 'UPDATE "mockTable" SET "created" = :up0, "col1" = :up1, "col2" = :up2 WHERE ("mockTable"."id" = :wh0) ',
+            'sql' => 'UPDATE "mockTable" SET "created" = :up0, "col1" = :up1, "col2" = :up2, "current_index" = :up3 WHERE ("mockTable"."id" = :wh0) ',
             'binds' => [
                 ':wh0' => 1,
                 ':up0' => 1484784000,
                 ':up1' => 'firstcolumn',
-                ':up2' => 'secondcolumn'
+                ':up2' => 'secondcolumn',
+                ':up3' => '0'
             ],
             'error' => '00000'
         ]];
@@ -229,22 +301,26 @@ class BlueprintPostgresTest extends TestCase
         $updateRecord = [
             'created' => '2017-01-19',
             'col1' => 'firstcolumn',
-            'col2' => 'secondcolumn'
+            'col2' => 'secondcolumn',
+            'current_index' => 0
         ];
 
         $id = 1;
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 
         $this->assertEquals($output, $blueprintquery->testUpdateQuery($id, $updateRecord));
     }
 
-    public function testDeleteQuery() {
+    public function testDeleteQuery()
+    {
         $output = [[
             'sql' => 'DELETE FROM "mockTable" WHERE ("mockTable"."id" = :wh0) ',
             'binds' => [
@@ -256,52 +332,71 @@ class BlueprintPostgresTest extends TestCase
         $id = 1;
 
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 
         $this->assertEquals($output, $blueprintquery->testDeleteQuery($id));
     }
 
-    public function testCountQuery() {
+    public function testCountQuery()
+    {
         $output = [[
             'sql' => 'SELECT COUNT(*) AS "count" FROM "mockTable" WHERE ("mockTable"."id" > :wh0) ',
             'binds' => [
                 ':wh0' => 1
             ],
-            'error' => '00000'
+            'error' => null
         ]];
 
+        $result = new \stdClass();
+        $result->count = 10;
+
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($result);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 
         $this->assertEquals($output, $blueprintquery->testCountQuery());
     }
 
-    public function testReverseOrderTableQuery() {
+    public function testReverseOrderTableQuery()
+    {
         $sql = 'SELECT "mockTable"."one", "mockTable"."two", "mockTable"."three" FROM "mockTable" ';
 
+        $result = new \stdClass();
+        $result->one = 'one';
+        $result->two = 'two';
+        $result->three = 'three';
+
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($result);
 
         $blueprintquery = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 
         $this->assertEquals($sql, $blueprintquery->testReverseOrderTableSetting());
     }
 
-    public function testExceptions() {
+    public function testExceptions()
+    {
         $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
 
         $blueprintexceptions = new BlueprintMock(
-            new PostgresSource($PDOMock->createBooleanPDO(true)),
+            new PostgresSource($pdo),
             new PostgresQuery()
         );
 

@@ -2,29 +2,33 @@
 
 namespace SypherLev\Blueprint\QueryBuilders\Postgres;
 
+use SypherLev\Blueprint\Error\BlueprintException;
 use SypherLev\Blueprint\QueryBuilders\QueryInterface;
 use SypherLev\Blueprint\QueryBuilders\SourceInterface;
+use PDO;
+use Exception;
+use stdClass;
 
 class PostgresSource implements SourceInterface
 {
     private $pdo;
-    /* @var \SypherLev\Blueprint\QueryBuilders\Postgres\PostgresQuery */
+    /* @var PostgresQuery */
     private $currentquery;
     private $recording = false;
     private $recording_output;
     private $in_transaction = false;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    public function one($sql = false, $binds = false)
+    public function one(string $sql = "", array $binds = []): stdClass
     {
-        if (!$sql) {
+        if ($sql === "") {
             $sql = $this->generateStatement();
         }
-        if (!$binds) {
+        if ($binds === []) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -35,7 +39,7 @@ class PostgresSource implements SourceInterface
                 }
             }
             $statement->execute();
-            $return = $statement->fetch(\PDO::FETCH_OBJ);
+            $return = $statement->fetch(PDO::FETCH_OBJ);
             if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
@@ -43,7 +47,10 @@ class PostgresSource implements SourceInterface
                     'error' => $statement->errorInfo()
                 );
             }
-        } catch (\Exception $e) {
+            if($return === false) {
+                $return = new stdClass();
+            }
+        } catch (Exception $e) {
             if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
@@ -51,18 +58,18 @@ class PostgresSource implements SourceInterface
                     'error' => $e->getMessage()
                 );
             }
-            $return = false;
+            $return = new stdClass();
         }
         $this->reset();
         return $return;
     }
 
-    public function many($sql = false, $binds = false)
+    public function many(string $sql = "", array $binds = []): array
     {
-        if (!$sql) {
+        if ($sql === "") {
             $sql = $this->generateStatement();
         }
-        if (!$binds) {
+        if ($binds === []) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -73,7 +80,7 @@ class PostgresSource implements SourceInterface
                 }
             }
             $statement->execute();
-            $return = $statement->fetchAll(\PDO::FETCH_OBJ);
+            $return = $statement->fetchAll(PDO::FETCH_OBJ);
             if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
@@ -81,7 +88,7 @@ class PostgresSource implements SourceInterface
                     'error' => $statement->errorInfo()
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($this->recording) {
                 $this->recording_output[] = array(
                     'sql' => $sql,
@@ -89,29 +96,29 @@ class PostgresSource implements SourceInterface
                     'error' => $e->getMessage()
                 );
             }
-            $return = false;
+            $return = [];
         }
         $this->reset();
         return $return;
     }
 
-    public function count()
+    public function count() : int
     {
         $this->currentquery->setCount(true);
         $return = $this->one();
-        if ($return) {
+        if (isset($return->count)) {
             return $return->count;
         } else {
-            return false;
+            throw new BlueprintException('Count query failure; query result does not contain any count variable');
         }
     }
 
-    public function execute($sql = false, $binds = false)
+    public function execute(string $sql = "", array $binds = []) : bool
     {
-        if (!$sql) {
+        if ($sql === "") {
             $sql = $this->generateStatement();
         }
-        if (!$binds) {
+        if ($binds === []) {
             $binds = $this->getAllBindings();
         }
         try {
@@ -143,7 +150,7 @@ class PostgresSource implements SourceInterface
         return $return;
     }
 
-    public function raw($sql, $values, $fetch = '', $returntype = \PDO::FETCH_OBJ)
+    public function raw(string $sql, array $values, string $fetch = '', int $returntype = \PDO::FETCH_OBJ)
     {
         try {
             $statement = $this->pdo->prepare($sql);
@@ -167,7 +174,7 @@ class PostgresSource implements SourceInterface
                 );
             }
             return $return;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $e;
         }
     }
@@ -194,7 +201,7 @@ class PostgresSource implements SourceInterface
     }
 
     // get a list of columns from a table in the current database
-    public function getTableColumns($tableName)
+    public function getTableColumns(string $tableName) : array
     {
         $sql = "SELECT * FROM information_schema.columns WHERE \"table_name\" = :tableName AND \"table_catalog\" = :database";
         $columns = $this->raw($sql, [':database' => $this->getDatabaseName(), ':tableName' => $tableName], 'fetchAll');
@@ -205,7 +212,8 @@ class PostgresSource implements SourceInterface
         return $return_array;
     }
 
-    public function getPrimaryKey($tableName) {
+    public function getPrimaryKey(string $tableName) : string
+    {
         $sql = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type
 FROM   pg_index i
 JOIN   pg_attribute a ON a.attrelid = i.indrelid
@@ -213,28 +221,31 @@ JOIN   pg_attribute a ON a.attrelid = i.indrelid
 WHERE  i.indrelid = :tableName::regclass
 AND    i.indisprimary;";
         $result = $this->raw($sql, [':tableName' => $tableName], 'fetchAll');
-        if($result) {
-            return $result[0]->attname;
+        if (count($result) > 0) {
+            $row = array_shift($result);
+            if(isset($row->attname)) {
+                return $row->attname;
+            }
         }
-        return null;
+        return "";
     }
 
     // Wrappers for some useful PDO functions
 
-    public function lastInsertId($name = "")
+    public function lastInsertId(string $name = ""): int
     {
-        // checking for nulls, Postgres doesn't handle nulls at all here
-        if($name == "") {
-            throw new \Exception('Postgres requires a sequence name to get the last insert ID');
+        // checking for nulls, Blueprint doesn't handle nulls at all here
+        if ($name === "") {
+            throw new BlueprintException('Blueprint requires a sequence name to get the last insert ID');
         }
 
         // use the primary key to try to get the sequence name
         $primary_key = $this->getPrimaryKey($name);
-        $id = $this->pdo->lastInsertId($name.'_'.$primary_key.'_seq');
-        if($id === false || is_null($id)) {
-            throw new \Exception("Can't get last insert ID for ".$name."; you must supply the correct sequence name.");
+        $id = $this->pdo->lastInsertId($name . '_' . $primary_key . '_seq');
+        if (empty($id)) {
+            throw new BlueprintException("Can't get last insert ID for " . $name . "; you must supply the correct sequence name.");
         }
-        return $id;
+        return (int)$id;
     }
 
     public function beginTransaction()
@@ -284,12 +295,13 @@ AND    i.indisprimary;";
         $this->recording = false;
     }
 
-    public function getRecordedOutput()
+    public function getRecordedOutput() : array
     {
         return $this->recording_output;
     }
 
-    public function generateNewQuery() {
+    public function generateNewQuery() : QueryInterface
+    {
         return new PostgresQuery();
     }
 

@@ -2,12 +2,15 @@
 
 namespace SypherLev\Blueprint;
 
+use SypherLev\Blueprint\Error\BlueprintException;
 use SypherLev\Blueprint\QueryBuilders\QueryInterface;
 use SypherLev\Blueprint\QueryBuilders\SourceInterface;
 
 abstract class Blueprint
 {
+    /* @var SourceInterface */
     protected $source;
+    /* @var QueryInterface */
     protected $query;
     private $patterns = [];
     private $filters = [];
@@ -21,7 +24,8 @@ abstract class Blueprint
     private $activeFilters = [];
     private $activeTransformations = [];
 
-    protected function __construct(SourceInterface $source, QueryInterface $query) {
+    protected function __construct(SourceInterface $source, QueryInterface $query)
+    {
         $this->source = $source;
         $this->query = $query;
     }
@@ -34,12 +38,13 @@ abstract class Blueprint
      *
      * @param $patternName
      * @param \Closure $pattern
-     * @throws \Exception
+     * @throws BlueprintException
      */
-    protected function addPattern($patternName, \Closure $pattern) {
+    protected function addPattern(string $patternName, \Closure $pattern)
+    {
         $pattern = call_user_func($pattern);
-        if(!is_a($pattern, 'SypherLev\Blueprint\Elements\Pattern')) {
-            throw (new \Exception('Pattern named '.$patternName. ' could not be added; Closure does not return a valid Pattern object'));
+        if (!is_a($pattern, 'SypherLev\Blueprint\Elements\Pattern')) {
+            throw (new BlueprintException('Pattern named ' . $patternName . ' could not be added; Closure does not return a valid Pattern object'));
         }
         $this->patterns[$patternName] = $pattern;
     }
@@ -50,11 +55,12 @@ abstract class Blueprint
      *
      * @param $patternName
      * @return $this
-     * @throws \Exception
+     * @throws BlueprintException
      */
-    protected function withPattern($patternName) {
-        if(!isset($this->patterns[$patternName])) {
-            throw (new \Exception('Could not set pattern '.$patternName.': pattern not found'));
+    protected function withPattern(string $patternName): Blueprint
+    {
+        if (!isset($this->patterns[$patternName])) {
+            throw (new BlueprintException('Could not set pattern ' . $patternName . ': pattern not found'));
         }
         $this->activePattern = $patternName;
         return $this;
@@ -68,10 +74,11 @@ abstract class Blueprint
      * @param \Closure $filter
      * @throws \Exception
      */
-    protected function addFilter($filterName, \Closure $filter) {
+    protected function addFilter(string $filterName, \Closure $filter)
+    {
         $filter = call_user_func($filter);
-        if(!is_a($filter, 'SypherLev\Blueprint\Elements\Filter')) {
-            throw (new \Exception('Filter named '.$filterName. ' could not be added; Closure does not return a valid Filter object'));
+        if (!is_a($filter, 'SypherLev\Blueprint\Elements\Filter')) {
+            throw (new BlueprintException('Filter named ' . $filterName . ' could not be added; Closure does not return a valid Filter object'));
         }
         $this->filters[$filterName] = $filter;
     }
@@ -84,9 +91,10 @@ abstract class Blueprint
      * @return $this
      * @throws \Exception
      */
-    protected function withFilter($filterName) {
-        if(!isset($this->filters[$filterName])) {
-            throw (new \Exception('Could not set filter '.$filterName.': filter not found'));
+    protected function withFilter(string $filterName): Blueprint
+    {
+        if (!isset($this->filters[$filterName])) {
+            throw (new BlueprintException('Could not set filter ' . $filterName . ': filter not found'));
         }
         $this->activeFilters[] = $filterName;
         return $this;
@@ -101,11 +109,11 @@ abstract class Blueprint
      * @param \Closure $transform
      * @param bool $operateOnArray
      */
-    protected function addTransformation($transformName, \Closure $transform, $operateOnArray = false) {
-        if($operateOnArray) {
+    protected function addTransformation(string $transformName, \Closure $transform, bool $operateOnArray = false)
+    {
+        if ($operateOnArray) {
             $this->arraytransforms[$transformName] = $transform;
-        }
-        else {
+        } else {
             $this->transforms[$transformName] = $transform;
         }
     }
@@ -118,9 +126,10 @@ abstract class Blueprint
      * @return $this
      * @throws \Exception
      */
-    protected function withTransformation($transformName) {
-        if(!isset($this->transforms[$transformName]) && !isset($this->arraytransforms[$transformName])) {
-            throw (new \Exception('Could not set transformation '.$transformName.': transformation not found'));
+    protected function withTransformation(string $transformName): Blueprint
+    {
+        if (!isset($this->transforms[$transformName]) && !isset($this->arraytransforms[$transformName])) {
+            throw (new \Exception('Could not set transformation ' . $transformName . ': transformation not found'));
         }
         $this->activeTransformations[] = $transformName;
         return $this;
@@ -130,25 +139,25 @@ abstract class Blueprint
 
     // set the current query type
     // call one of these first.
-    protected function select()
+    protected function select(): Blueprint
     {
         $this->query->setType('SELECT');
         return $this;
     }
 
-    protected function update()
+    protected function update(): Blueprint
     {
         $this->query->setType('UPDATE');
         return $this;
     }
 
-    protected function insert()
+    protected function insert(): Blueprint
     {
         $this->query->setType('INSERT');
         return $this;
     }
 
-    protected function delete()
+    protected function delete(): Blueprint
     {
         $this->query->setType('DELETE');
         return $this;
@@ -156,20 +165,21 @@ abstract class Blueprint
 
     // set the required termination. SELECT = one|many|count, UPDATE|INSERT|DELETE = execute
     // call one of these last
-    protected function one() {
+    protected function one()
+    {
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->one();
         $activeTransformations = $this->activeTransformations;
         $this->reset();
-        if($result && !empty($activeTransformations)) {
+        if (!empty($activeTransformations)) {
             foreach ($activeTransformations as $transform) {
-                if(isset($this->transforms[$transform])) {
+                if (isset($this->transforms[$transform])) {
                     $result = call_user_func($this->transforms[$transform], $result);
                 }
-                if(isset($this->arraytransforms[$transform])) {
+                if (isset($this->arraytransforms[$transform])) {
                     $temp = call_user_func($this->arraytransforms[$transform], [$result]);
-                    $result = $temp[0];
+                    $result = array_shift($temp);
                 }
             }
         }
@@ -177,20 +187,21 @@ abstract class Blueprint
         return $result;
     }
 
-    protected function many() {
+    protected function many()
+    {
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->many();
         $activeTransformations = $this->activeTransformations;
         $this->reset();
-        if($result && !empty($activeTransformations)) {
+        if ($result && !empty($activeTransformations)) {
             foreach ($activeTransformations as $transform) {
-                if(isset($this->transforms[$transform])) {
+                if (isset($this->transforms[$transform])) {
                     foreach ($result as $idx => $r) {
                         $result[$idx] = call_user_func($this->transforms[$transform], $r);
                     }
                 }
-                if(isset($this->arraytransforms[$transform])) {
+                if (isset($this->arraytransforms[$transform])) {
                     $result = call_user_func($this->arraytransforms[$transform], $result);
                 }
             }
@@ -199,35 +210,36 @@ abstract class Blueprint
         return $result;
     }
 
-    protected function execute() {
+    protected function execute()
+    {
         $query = $this->loadElements();
-        if(!empty($this->activeTransformations) && !empty($this->set)) {
+        if (!empty($this->activeTransformations) && !empty($this->set)) {
             foreach ($this->activeTransformations as $transformation) {
-                if(isset($this->transforms[$transformation])) {
+                if (isset($this->transforms[$transformation])) {
                     $this->set = call_user_func($this->transforms[$transformation], $this->set);
                 }
-                if(isset($this->arraytransforms[$transformation])) {
+                if (isset($this->arraytransforms[$transformation])) {
                     $temp = $this->set = call_user_func($this->arraytransforms[$transformation], [$this->set]);
                     $this->set = $temp[0];
                 }
             }
         }
-        if(!empty($this->activeTransformations) && !empty($this->insert_records)) {
+        if (!empty($this->activeTransformations) && !empty($this->insert_records)) {
             foreach ($this->activeTransformations as $transformation) {
-                if(isset($this->transforms[$transformation])) {
+                if (isset($this->transforms[$transformation])) {
                     foreach ($this->insert_records as $idx => $record) {
                         $this->insert_records[$idx] = call_user_func($this->transforms[$transformation], $record);
                     }
                 }
-                if(isset($this->arraytransforms[$transformation])) {
+                if (isset($this->arraytransforms[$transformation])) {
                     $this->insert_records = call_user_func($this->arraytransforms[$transformation], $this->insert_records);
                 }
             }
         }
-        if(!empty($this->set)) {
+        if (!empty($this->set)) {
             $query->setUpdates($this->set);
         }
-        if(!empty($this->insert_records)) {
+        if (!empty($this->insert_records)) {
             foreach ($this->insert_records as $record) {
                 $query->addInsertRecord($record);
             }
@@ -239,7 +251,8 @@ abstract class Blueprint
         return $result;
     }
 
-    protected function count() {
+    protected function count()
+    {
         $query = $this->loadElements();
         $this->source->setQuery($query);
         $result = $this->source->count();
@@ -256,7 +269,8 @@ abstract class Blueprint
      * @param string $tablename
      * @return $this
      */
-    protected function table($tablename) {
+    protected function table(string $tablename) : Blueprint
+    {
         $this->query->setTable($tablename);
         return $this;
     }
@@ -264,16 +278,16 @@ abstract class Blueprint
     /**
      * Selects columns to attach to the query
      *
-     * @param $columnName_or_columnArray - has five possible types:
-     *     $column
+     * @param $columnName_or_columnArray - has four possible types
      *     array($columnone, $columntwo, ...)
      *     array($alias => $column, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($aliasone => $columnone, $aliastwo => $columntwo,  ...), $tabletwo => array(...) ...)
      * @return $this
      */
-    protected function columns($columnname_or_columnarray) {
-        $this->query->setColumns($columnname_or_columnarray);
+    protected function columns(array $columnarray)
+    {
+        $this->query->setColumns($columnarray);
         return $this;
     }
 
@@ -284,7 +298,8 @@ abstract class Blueprint
      * @param array $record - array('column' => $variable, ... )
      * @return $this
      */
-    protected function add(Array $record) {
+    protected function add(array $record)
+    {
         $this->insert_records[] = $record;
         return $this;
     }
@@ -295,7 +310,8 @@ abstract class Blueprint
      * @param array $updates - array('column' => $variable, ... )
      * @return $this
      */
-    protected function set(Array $set) {
+    protected function set(array $set)
+    {
         $this->set = $set;
         return $this;
     }
@@ -307,7 +323,8 @@ abstract class Blueprint
      * @param int $offset
      * @return $this
      */
-    protected function limit($rows, $offset = false) {
+    protected function limit(int $rows, int $offset = 0)
+    {
         $this->query->setLimit($rows, $offset);
         return $this;
     }
@@ -315,19 +332,16 @@ abstract class Blueprint
     /**
      * Sets the order for the query
      *
-     * @param $columnName_or_columnArray - has three possible types:
-     *     $column
+     * @param $columns - has two possible types:
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      * @param $direction - must be one of 'ASC' or 'DESC'
      * @param $aliases - whether aliases are being used or not
      * @return $this
      */
-    protected function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false) {
-        if (!is_array($columnname_or_columnarray)) {
-            $columnname_or_columnarray = [$columnname_or_columnarray];
-        }
-        $this->query->setOrderBy($columnname_or_columnarray, $order, $useAliases);
+    protected function orderBy(array $columns, $order = 'ASC', $useAliases = false)
+    {
+        $this->query->setOrderBy($columns, $order, $useAliases);
         return $this;
     }
 
@@ -337,33 +351,29 @@ abstract class Blueprint
      * $function must ne one of SUM|COUNT|AVG|MIN|MAX
      *
      * @param $function - ex. SUM - applied to all selected columns
-     * @param $columnName_or_columnArray - has four possible types:
-     *     $column
+     * @param $columns - has four possible types
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($alias => $columnone, $alias => $columntwo,  ...), $tabletwo => array(...), ...)
      * @return $this
      */
-    protected function aggregate($function, $columnName_or_columnArray)
+    protected function aggregate($function, $columns)
     {
-        $this->query->setAggregate(strtoupper($function), $columnName_or_columnArray);
+        $this->query->setAggregate(strtoupper($function), $columns);
         return $this;
     }
 
     /**
      * Sets the groupby clause
      *
-     * @param $groupby - has three possible types:
-     *     string $columnname
+     * @param $columns - has two possible types:
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      * @return $this
      */
-    protected function groupBy($columnname_or_columnarray) {
-        if (!is_array($columnname_or_columnarray)) {
-            $columnname_or_columnarray = [$columnname_or_columnarray];
-        }
-        $this->query->setGroupBy($columnname_or_columnarray);
+    protected function groupBy($columns)
+    {
+        $this->query->setGroupBy($columns);
         return $this;
     }
 
@@ -376,7 +386,8 @@ abstract class Blueprint
      * @param string $type - inner|full|left|right
      * @return $this
      */
-    protected function join($firsttable, $secondtable, Array $on, $type = 'inner') {
+    protected function join($firsttable, $secondtable, array $on, $type = 'inner')
+    {
         $this->query->setJoin($firsttable, $secondtable, $on, strtoupper($type));
         return $this;
     }
@@ -397,7 +408,8 @@ abstract class Blueprint
      * @param string $outercondition - AND|OR - used to append this WHERE statement to the query
      * @return $this
      */
-    protected function where(Array $where, $innercondition = 'AND', $outercondition = 'AND') {
+    protected function where(array $where, $innercondition = 'AND', $outercondition = 'AND')
+    {
         $this->query->setWhere($where, strtoupper($innercondition), strtoupper($outercondition));
         return $this;
     }
@@ -410,7 +422,8 @@ abstract class Blueprint
      *
      * @return string
      */
-    protected function getCurrentSQL() {
+    protected function getCurrentSQL()
+    {
         $cloneQuery = clone $this->query;
         $cloneQuery = $this->loadElements($cloneQuery);
         return $cloneQuery->compile();
@@ -421,13 +434,14 @@ abstract class Blueprint
      *
      * @return array
      */
-    protected function getCurrentBindings() {
+    protected function getCurrentBindings()
+    {
         $cloneQuery = clone $this->query;
         $cloneQuery = $this->loadElements($cloneQuery);
-        if(!empty($this->set)) {
+        if (!empty($this->set)) {
             $cloneQuery->setUpdates($this->set);
         }
-        if(!empty($this->insert_records)) {
+        if (!empty($this->insert_records)) {
             foreach ($this->insert_records as $record) {
                 $cloneQuery->addInsertRecord($record);
             }
@@ -438,14 +452,16 @@ abstract class Blueprint
     /**
      * Start recording queries, bindings and error output as they are executed
      */
-    protected function record() {
+    protected function record()
+    {
         $this->source->startRecording();
     }
 
     /**
      *  Stop recording queries, bindings and error output as they are executed
      */
-    protected function stop() {
+    protected function stop()
+    {
         $this->source->stopRecording();
     }
 
@@ -454,55 +470,47 @@ abstract class Blueprint
      *
      * @return array $output
      */
-    protected function output() {
+    protected function output()
+    {
         return $this->source->getRecordedOutput();
     }
 
-    protected function getTableColumns($tableName) {
+    protected function getTableColumns($tableName)
+    {
         return $this->source->getTableColumns($tableName);
     }
 
-    protected function getPrimaryKey($tableName) {
+    protected function getPrimaryKey($tableName)
+    {
         return $this->source->getPrimaryKey($tableName);
     }
 
     /**
      * Add either a table or an array of tables to the current whitelist
      *
-     * @param string $table | array $table
+     * @param array $tables
      */
-    protected function whitelistTable($table) {
-        if(is_array($table)) {
-            foreach ($table as $t) {
-                $this->query->addToTableWhitelist($t);
-            }
-        }
-        else {
-            $this->query->addToTableWhitelist($table);
-        }
+    protected function whitelistTable(array $tables)
+    {
+        $this->query->addToTableWhitelist($tables);
     }
 
     /**
      * Add either a column or an array of columns to the current whitelist
      *
-     * @param string $column | array $column
+     * @param array $columns
      */
-    protected function whitelistColumn($column) {
-        if(is_array($column)) {
-            foreach ($column as $c) {
-                $this->query->addToColumnWhitelist($c);
-            }
-        }
-        else {
-            $this->query->addToColumnWhitelist($column);
-        }
+    protected function whitelistColumn($columns)
+    {
+        $this->query->addToColumnWhitelist($columns);
     }
 
     /**
      * Reset the query and source; prep for another pass
      *
      */
-    protected function reset() {
+    protected function reset()
+    {
         $this->activePattern = false;
         $this->activeFilters = [];
         $this->activeTransformations = [];
@@ -514,22 +522,22 @@ abstract class Blueprint
 
     // PRIVATE METHODS
 
-    private function loadElements($query = false) {
-        if(!$query) {
+    private function loadElements(QueryInterface $query = null) : QueryInterface
+    {
+        if (is_null($query)) {
             $query = $this->query;
         }
-        if($this->activePattern) {
+        if ($this->activePattern) {
             $query = $this->patterns[$this->activePattern]->setQueryParams($query);
-            if(!empty($this->activeFilters)) {
+            if (!empty($this->activeFilters)) {
                 foreach ($this->activeFilters as $filter) {
                     $query = $this->filters[$filter]->setQueryParams($query);
                 }
             }
             $this->activePattern = false;
-            $this->activeFilter = false;
+            $this->activeFilters = [];
             return $query;
-        }
-        else {
+        } else {
             return $this->query;
         }
     }

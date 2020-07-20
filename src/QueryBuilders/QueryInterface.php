@@ -17,40 +17,39 @@ interface QueryInterface
      *
      * @param string $tablename
      */
-    public function setTable($tablename);
+    public function setTable(string $tablename);
 
     /**
      * Sets the current query type
      *
      * @param $type
      */
-    public function setType($type);
+    public function setType(string $type);
 
     /**
      * Selects columns to attach to the query
      *
-     * @param $columnName_or_columnArray - has five possible types:
-     *     $column
+     * @param $columns - has four possible types
      *     array($columnone, $columntwo, ...)
      *     array($alias => $column, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($aliasone => $columnone, $aliastwo => $columntwo,  ...), $tabletwo => array(...) ...)
      */
-    public function setColumns(Array $columns);
+    public function setColumns(array $columns);
 
     /**
      * Used only with UPDATE
      *
      * @param array $updates - array('column' => $variable, ... )
      */
-    public function setUpdates(Array $updates);
+    public function setUpdates(array $updates);
 
     /**
      * Sets the current query to return COUNT(*)
      *
      * @param bool $count
      */
-    public function setCount($count = false);
+    public function setCount(bool $count = false);
 
     /**
      * Used to add records for INSERT statements
@@ -58,7 +57,7 @@ interface QueryInterface
      *
      * @param array $record - array('column' => $variable, ... )
      */
-    public function addInsertRecord(Array $record);
+    public function addInsertRecord(array $record);
 
     /**
      * Sets the LIMIT for the current query.
@@ -66,7 +65,7 @@ interface QueryInterface
      * @param int $rows
      * @param int $offset
      */
-    public function setLimit($rows, $offset = 0);
+    public function setLimit(int $rows, int $offset = 0);
 
     /**
      * Adds a JOIN clause
@@ -76,7 +75,7 @@ interface QueryInterface
      * @param array $on - must be in the format array('firsttablecolumn' => 'secondtablecolumn, ...)
      * @param string $type - inner|full|left|right
      */
-    public function setJoin($first, $second, Array $on, $type = 'INNER');
+    public function setJoin(string $first, string $second, array $on, string $type = 'INNER');
 
     /**
      * Adds a WHERE clause
@@ -93,32 +92,30 @@ interface QueryInterface
      * @param string $innercondition - AND|OR - used between clauses in the WHERE statement
      * @param string $outercondition - AND|OR - used to append this WHERE statement to the query
      */
-    public function setWhere(Array $where, $innercondition = 'AND', $outercondition = 'AND');
+    public function setWhere(array $where, string $innercondition = 'AND', string $outercondition = 'AND');
 
     /**
      * Sets the order for the query
      *
-     * @param $columnName_or_columnArray - has three possible types:
-     *     $column
+     * @param $orderby - has two possible types
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      * @param $direction - must be one of 'ASC' or 'DESC'
      * @param $aliases - whether aliases are being used or not
      */
-    public function setOrderBy(Array $orderby, $direction = 'ASC', $aliases = false);
+    public function setOrderBy(array $orderby, string $direction = 'ASC', bool $aliases = false);
 
     /**
      * Sets one or more aggregate clauses in the current query, ex. SUM(columnone), SUM(column2)
      * Use multiple columns for quick and dirty data retrieval,
      *
      * @param $function - ex. SUM, AVG, MAX - applied to all selected columns
-     * @param $columnName_or_columnArray - has four possible types:
-     *     $column
+     * @param $columns - has three possible types:
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      *     array($tableone => array($alias => $columnone, $alias => $columntwo,  ...), $tabletwo => array(...), ...)
      */
-    public function setAggregate($function, $columnName_or_columnArray);
+    public function setAggregate(string $function, array $columns);
 
     /**
      * Sets the groupby clause
@@ -127,24 +124,24 @@ interface QueryInterface
      *     array($columnone, $columntwo, ...)
      *     array($tableone => array($columnone, $columntwo,  ...), $tabletwo => array(...), ...)
      */
-    public function setGroupBy(Array $groupby);
+    public function setGroupBy(array $groupby);
 
     /**
      * Adds to the columns whitelist in the case where the query is executing with
      * user input as the column names. Takes an array or a string
      *
-     * @param array|string $whitelist
+     * @param array $whitelist
      */
-    public function addToColumnWhitelist($column);
+    public function addToColumnWhitelist(array $columns);
 
     /**
      * Adds to the table whitelist in the case where the query is executing with
      * user input as the table names. Applies to the primary table and all joined tables
      * Accepts an array or a string
      *
-     * @param array|string $whitelist
+     * @param array $whitelist
      */
-    public function addToTableWhitelist($table);
+    public function addToTableWhitelist(array $table);
 
     /**
      * Gets the bindings which will be used in the current query
@@ -159,5 +156,5 @@ interface QueryInterface
      * @param $sectionName
      * @return mixed
      */
-    public function getSection($sectionName);
+    public function getSection(string $sectionName);
 }

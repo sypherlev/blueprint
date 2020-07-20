@@ -10,7 +10,7 @@ class Filter
     private $order = [];
     private $limit = [];
 
-    public function where(Array $where, $innercondition = 'AND', $outercondition = 'AND') {
+    public function where(array $where, string $innercondition = 'AND', string $outercondition = 'AND') : Filter {
         $this->wheres[] = array(
             'where' => $where,
             'inner' => $innercondition,
@@ -19,19 +19,16 @@ class Filter
         return $this;
     }
 
-    public function orderBy($columnname_or_columnarray, $order = 'ASC', $useAliases = false) {
-        if (!is_array($columnname_or_columnarray)) {
-            $columnname_or_columnarray = [$columnname_or_columnarray];
-        }
+    public function orderBy(array $columns, string $order = 'ASC', bool $useAliases = false) : Filter {
         $this->order = array(
-            'columns' => $columnname_or_columnarray,
+            'columns' => $columns,
             'order' => $order,
             'aliases' => $useAliases
         );
         return $this;
     }
 
-    public function limit($rows, $offset = false) {
+    public function limit(int $rows, int $offset = 0) : Filter {
         $this->limit = array(
             'rows' => $rows,
             'offset' => $offset
@@ -39,7 +36,7 @@ class Filter
         return $this;
     }
 
-    public function setQueryParams(QueryInterface $query) {
+    public function setQueryParams(QueryInterface $query) : QueryInterface {
         if(!empty($this->order)) {
             $query->setOrderBy($this->order['columns'], $this->order['order'], $this->order['aliases']);
         }

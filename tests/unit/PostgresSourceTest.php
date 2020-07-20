@@ -1,19 +1,29 @@
 <?php
 
+namespace Test\unit;
+
+include_once realpath(__DIR__."/../testObjects/BlueprintMock.php");
+include_once realpath(__DIR__."/../testObjects/PDOMock.php");
+
 use SypherLev\Blueprint\QueryBuilders\Postgres\PostgresSource;
 use SypherLev\Blueprint\QueryBuilders\Postgres\PostgresQuery;
+use Test\testObjects\PDOMock;
 
 class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 {
     public function testOneException() {
+
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createExceptionPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createExceptionPDO();
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresQuery = new PostgresQuery();
         $postgresQuery->setType('SELECT');
         $postgresQuery->setTable('mockTable');
         $postgresSource->setQuery($postgresQuery);
         $postgresSource->startRecording();
-        $this->assertEquals(false, $postgresSource->one());
+        $this->assertEquals(new \stdClass(), $postgresSource->one());
         $postgresSource->stopRecording();
 
         $recordedOutput = [[
@@ -27,13 +37,16 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testManyException() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createExceptionPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createExceptionPDO();
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresQuery = new PostgresQuery();
         $postgresQuery->setType('SELECT');
         $postgresQuery->setTable('mockTable');
         $postgresSource->setQuery($postgresQuery);
         $postgresSource->startRecording();
-        $this->assertEquals(false, $postgresSource->many());
+        $this->assertEquals([], $postgresSource->many());
         $postgresSource->stopRecording();
 
         $recordedOutput = [[
@@ -47,7 +60,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testExecuteException() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createExceptionPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createExceptionPDO();
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresQuery = new PostgresQuery();
         $postgresQuery->setType('UPDATE');
         $postgresQuery->setTable('mockTable');
@@ -69,12 +85,31 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals($recordedOutput, $postgresSource->getRecordedOutput());
     }
+    
+    public function testCountException() {
+        $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO(new \stdClass);
+
+        $postgresSource = new PostgresSource($pdo);
+        $postgresQuery = new PostgresQuery();
+        $postgresQuery->setType('SELECT');
+        $postgresQuery->setTable('mockTable');
+        $postgresSource->setQuery($postgresQuery);
+        try {
+            $postgresSource->count();
+        }
+        catch (\Exception $e) {
+            return;
+        }
+        $this->fail('MysqlSource->count() returning invalid result did not trigger an Exception');
+    }
 
     public function testManyRecording() {
 
         $objectArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
             $obj->created = 1484784000;
@@ -84,7 +119,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
         }
 
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createFetchAllPDO($objectArray));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresQuery = new PostgresQuery();
         $postgresQuery->setType('SELECT');
         $postgresQuery->setTable('mockTable');
@@ -108,7 +146,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
         $returnObject->count = 3;
 
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createFetchPDO($returnObject));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($returnObject);
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresQuery = new PostgresQuery();
         $postgresQuery->setType('SELECT');
         $postgresQuery->setCount(true);
@@ -120,7 +161,7 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testRawFetch() {
 
-        $obj = new stdClass();
+        $obj = new \stdClass();
         $obj->id = 1;
         $obj->mockcol = 'mockcol';
         $obj->created = 1484784000;
@@ -128,7 +169,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
         $obj->secondcolumn = 'secondcolumn';
 
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createFetchPDO($obj));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO($obj);
+
+        $postgresSource = new PostgresSource($pdo);
 
         $sql = 'SELECT * FROM "mockTable" WHERE "mockTable"."id" = :id';
         $postgresSource->startRecording();
@@ -151,7 +195,7 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
         $objectArray = [];
         for ($i = 0; $i < 5; $i++) {
-            $obj = new stdClass();
+            $obj = new \stdClass();
             $obj->id = $i;
             $obj->mockcol = 'mockcol'.$i;
             $obj->created = 1484784000;
@@ -161,7 +205,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
         }
 
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createFetchAllPDO($objectArray));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO($objectArray);
+
+        $postgresSource = new PostgresSource($pdo);
 
         $sql = 'SELECT * FROM "mockTable" WHERE "mockTable"."id" = :id';
         $postgresSource->startRecording();
@@ -182,7 +229,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testRawException() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createExceptionPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createExceptionPDO();
+
+        $postgresSource = new PostgresSource($pdo);
 
         $sql = 'SELECT * FROM "mockTable"';
         $result = $postgresSource->raw($sql, [':id' => 1], 'fetchAll');
@@ -192,7 +242,10 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOUtilitiesTrue() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createUtilityPDOPostgres(true));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createUtilityPDOPostgres(true);
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresSource->beginTransaction();
 
         $this->assertEquals(1, $postgresSource->lastInsertId('tablename'));
@@ -200,11 +253,22 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
         $postgresSource->beginTransaction();
         $this->assertEquals(true, $postgresSource->rollBack());
+
+        try {
+            $postgresSource->lastInsertId('');
+        }
+        catch (\Exception $e) {
+            return;
+        }
+        $this->fail('PostgresSource->lastInsertId() with invalid parameters did not trigger an Exception');
     }
 
     public function testPDOSchemaFunctions() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createPostgresSchemaPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createPostgresSchemaPDO();
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresSource->beginTransaction();
 
         $this->assertEquals('mockDatabase', $postgresSource->getDatabaseName());
@@ -214,15 +278,47 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOPrimaryKeyFunctions() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createPostgresPrimaryKeysPDO());
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createPostgresPrimaryKeysPDO();
+
+        $postgresSource = new PostgresSource($pdo);
         $postgresSource->beginTransaction();
 
         $this->assertEquals('id', $postgresSource->getPrimaryKey('mockTable'));
     }
 
+    public function testInvalidPrimaryKeyFunction() {
+        $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchPDO(new \stdClass());
+
+        $postgresSource = new PostgresSource($pdo);
+        $postgresSource->beginTransaction();
+
+        $this->assertEquals('', $postgresSource->getPrimaryKey('mockTable'));
+    }
+
+    public function testInvalidLastInsertIDFunction() {
+        $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createFetchAllPDO([new \stdClass()]);
+
+        $postgresSource = new PostgresSource($pdo);
+        try {
+            $postgresSource->lastInsertId('mockTable');
+        }
+        catch (\Exception $e) {
+            return;
+        }
+        $this->fail('PostgresSource->lastInsertId() with invalid parameters did not trigger an Exception');
+    }
+
     public function testPDOUtilitiesFalse() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createUtilityPDOPostgres(false));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createUtilityPDOPostgres(false);
+
+        $postgresSource = new PostgresSource($pdo);
 
         $this->assertEquals(false, $postgresSource->commit());
 
@@ -231,11 +327,25 @@ class PostgresSourceTest extends \PHPUnit\Framework\TestCase
 
     public function testPDOBindings() {
         $PDOMock = new PDOMock();
-        $postgresSource = new PostgresSource($PDOMock->createBooleanPDO(true));
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
+        $postgresSource = new PostgresSource($pdo);
 
         $sql = 'SELECT * FROM "mockTable" WHERE "mockTable"."col1" IS :nullbind OR "mockTable"."col1" = :truebind';
         $result = $postgresSource->raw($sql, [':nullbind' => null, ':truebind' => true]);
 
         $this->assertEquals(true, $result);
+    }
+
+    public function testQueryGeneration() {
+        $PDOMock = new PDOMock();
+        /** @var \PDO&\PHPUnit\Framework\MockObject\MockObject $pdo */
+        $pdo = $PDOMock->createBooleanPDO(true);
+
+        $postgresSource = new PostgresSource($pdo);
+
+        $query = $postgresSource->generateNewQuery();
+        $this->assertInstanceOf(PostgresQuery::class, $query);
     }
 }

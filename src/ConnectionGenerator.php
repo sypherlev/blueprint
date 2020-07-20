@@ -5,6 +5,8 @@
 
 namespace SypherLev\Blueprint;
 
+use SypherLev\Blueprint\Error\BlueprintException;
+
 class ConnectionGenerator
 {
     private $driver = '';
@@ -23,11 +25,11 @@ class ConnectionGenerator
      * @param string $pass
      */
     public function setConnectionParameters(
-        string $driver = 'mysql',
         string $host,
         string $database,
         string $user,
-        string $pass
+        string $pass,
+        string $driver = 'mysql'
     )
     {
         $this->driver = $driver;
@@ -50,11 +52,11 @@ class ConnectionGenerator
             return new \PDO($dns, $this->user, $this->pass);
         }
         else {
-            throw (new \Exception("Invalid or missing database connection parameters"));
+            throw (new BlueprintException("Invalid or missing database connection parameters"));
         }
     }
 
-    private function validateConfig() {
+    private function validateConfig() : bool {
         if($this->driver == '' ||
             $this->host == '' ||
             $this->database == '' ||

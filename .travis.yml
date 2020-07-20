@@ -2,4 +2,4 @@ language: php
 php:
   - '7.0'
 before_script: composer install
-script: ./vendor/bin/phpunit --configuration phpunitconfig.xml tests
+script: php vendor/bin/codecept run
